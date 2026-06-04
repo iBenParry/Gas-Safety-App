@@ -177,8 +177,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0b1120;color:#e2e8f0;he
     <div class="ch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><h2>Inspection Details</h2></div>
     <div class="cb">
       <div class="r2"><div class="f"><label>Date of Inspection</label><input type="text" id="inspDate" placeholder="DD/MM/YY"></div><div class="f"><label>Issue Date</label><input type="text" id="issueDate" placeholder="DD/MM/YY"></div></div>
-      <div class="r2"><div class="f"><label>Record Serial No</label><input type="text" id="serialNo" placeholder="e.g. GSR-001"></div><div class="f"><label>Report Ref No</label><input type="text" id="refNo" placeholder="e.g. 47C 270972"></div></div>
-      <div class="r2"><div class="f"><label>Stock Card No</label><input type="text" id="stockNo"></div><div class="f"><label>Next Check Before</label><input type="text" id="nextCheck" placeholder="DD/MM/YY"></div></div>
+      <div class="f"><label>Next Check Before</label><input type="text" id="nextCheck" placeholder="DD/MM/YY"></div>
     </div>
   </div>
   <div class="card">
@@ -200,7 +199,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0b1120;color:#e2e8f0;he
   <div class="card">
     <div class="ch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="1" y="7" width="22" height="12" rx="2"/><path d="M16 19v2M8 19v2M1 11h22"/></svg><h2>Caravan / Site Details</h2></div>
     <div class="cb">
-      <div class="r2"><div class="f"><label>Vehicle Registration</label><input type="text" id="vehicleReg" style="text-transform:uppercase" placeholder="AB12 CDE"></div><div class="f"><label>Manufacturer</label><input type="text" id="mfr" placeholder="e.g. Bailey, Swift"></div></div>
+      <div class="f"><label>Manufacturer</label><input type="text" id="mfr" placeholder="e.g. Bailey, Swift"></div>
       <div class="f"><label>Caravan Park</label><input type="text" id="site" placeholder="e.g. Golden Gate Caravan Park"></div>
       <div class="f"><label>Plot Number</label><input type="text" id="plotNo" placeholder="e.g. 14"></div>
     </div>
@@ -358,7 +357,7 @@ document.addEventListener('input', e => {
   if(e.target.id === 'lockP' || e.target.id === 'opP') calcPressureResults();
 });
 function updateProgress(){
-  const req=['inspDate','ownerName','vehicleReg','mfr','engName','licNo'];
+  const req=['inspDate','ownerName','mfr','engName','licNo'];
   const done=req.filter(id=>{const e=document.getElementById(id);return e&&e.value.trim()}).length;
   const pct=Math.round(done/req.length*100);
   const f=document.getElementById('pfill'),p=document.getElementById('pct');
@@ -530,9 +529,9 @@ function collect(){
   const sel=id=>{const e=document.getElementById(id);return e?e.value:''};
   const s=getS();
   return{
-    inspDate:gv('inspDate'),issueDate:gv('issueDate'),serialNo:gv('serialNo'),refNo:gv('refNo'),stockNo:gv('stockNo'),nextCheck:gv('nextCheck'),
+    inspDate:gv('inspDate'),issueDate:gv('issueDate'),nextCheck:gv('nextCheck'),
     ownerName:gv('ownerName'),ownerAddr:gv('ownerAddr'),ownerPC:gv('ownerPC'),ownerTel:gv('ownerTel'),
-    vehicleReg:gv('vehicleReg'),mfr:gv('mfr'),site:gv('site'),plotNo:gv('plotNo'),
+    mfr:gv('mfr'),site:gv('site'),plotNo:gv('plotNo'),
     coFit:r('coFit'),coDate:r('coDate'),coTest:r('coTest'),smoke:r('smoke'),
     tAir:r('tAir'),tLPG:r('tLPG'),lockP:gv('lockP'),lockR:r('lockR'),
     opP:gv('opP'),opR:r('opR'),hose:r('hose'),cylConn:r('cylConn'),ecv:r('ecv'),numApp:String(APPS.filter((_,i)=>gv('a'+i+'mk')||gv('a'+i+'mo')).length),
@@ -731,7 +730,7 @@ return `<!DOCTYPE html>
     <span class="c-cbox"><span class="c-sq" style="background:#fff"></span>&nbsp;LEISURE VEHICLE*</span>
   </div>
   <div class="c-hdr-title">GAS SAFETY INSPECTION RECORD</div>
-  <div class="c-hdr-ref"><div style="font-size:5pt">Cert No:</div><div class="c-rn">${d.certNo||d.refNo||'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</div></div>
+  <div class="c-hdr-ref"><div style="font-size:5pt">Cert No:</div><div class="c-rn">${d.certNo||''}</div></div>
 </div>
 
 <!-- ROW 1: Business / Inspection+Location / Owner -->
@@ -750,14 +749,11 @@ return `<!DOCTYPE html>
     <div class="c-sh">INSPECTION RECORD DETAILS</div>
     <div class="c-bp">
       <div class="c-fr"><span class="c-fl">Date of Inspection:</span><span class="c-fv"><strong>${d.inspDate}</strong></span></div>
-      <div class="c-fr"><span class="c-fl">Record Serial No:</span><span class="c-fv">${d.serialNo}</span></div>
-      <div class="c-fr"><span class="c-fl">Stock Card No:</span><span class="c-fv">${d.stockNo}</span></div>
     </div>
     <div class="c-sh">INSPECTION LOCATION</div>
     <div class="c-bp">
       <div class="c-fr"><span class="c-fl">Caravan Park:</span><span class="c-fv">${d.site}</span></div>
       <div class="c-fr"><span class="c-fl">Plot No:</span><span class="c-fv">${d.plotNo}</span></div>
-      <div class="c-fr"><span class="c-fl">Vehicle Registration:</span><span class="c-fv">${d.vehicleReg}</span></div>
       <div class="c-fr"><span class="c-fl">Manufacturer:</span><span class="c-fv">${d.mfr}</span></div>
     </div>
   </div>
@@ -1011,7 +1007,7 @@ async function doPrintFlow(d){
     updateOverlay('Getting certificate number…');
     const certNo = await getNextCertNumber();
     d.certNo = formatCertNo(certNo);
-    sv('serialNo', d.certNo);
+
     console.log('Cert number assigned:', d.certNo);
 
     // Step 2: generate PDF blob

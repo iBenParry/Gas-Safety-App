@@ -1018,6 +1018,22 @@ function printCert(){
     return;
   }
 
+  // ── No appliances check ──
+  const appCount = APPS.filter((_,i) => gv('a'+i+'mk')).length;
+  if(appCount === 0){
+    switchTab('apps');
+    alert('No appliances have been entered.\n\nA gas safety certificate cannot be issued without testing at least one appliance. Please fill in the Make (and Model) for each appliance tested.');
+    return;
+  }
+
+  // ── Pressure swap check ──
+  const opVal = parseFloat(d.opP), lockVal = parseFloat(d.lockP);
+  if(!isNaN(opVal) && !isNaN(lockVal) && opVal > lockVal){
+    switchTab('tests');
+    alert(`Operating Pressure (${opVal}mbar) is greater than Lock-Up Pressure (${lockVal}mbar).\n\nThese values appear to be swapped. Please correct them before printing.`);
+    return;
+  }
+
   // ── Show processing overlay ──
   showOverlay('Getting certificate number…');
   doPrintFlow(d).finally(()=>hideOverlay());
@@ -1373,6 +1389,16 @@ function calcPressureResults(){
   const lockVal = parseFloat(gv('lockP'));
   const opVal   = parseFloat(gv('opP'));
 
+  // Check: operating pressure cannot exceed lock-up pressure
+  if(!isNaN(lockVal) && !isNaN(opVal) && gv('lockP') !== '' && gv('opP') !== ''){
+    if(opVal > lockVal){
+      showPressureSwapAlert(opVal, lockVal);
+      return; // don't set pass/fail until corrected
+    } else {
+      hidePressureSwapAlert();
+    }
+  }
+
   // Lock-up pressure result
   const lockEl = document.getElementById('lockP');
   if(!isNaN(lockVal) && gv('lockP') !== ''){
@@ -1384,7 +1410,6 @@ function calcPressureResults(){
       lockEl.style.color       = lockPass ? '#4ade80' : '#f87171';
     }
   } else {
-    // Clear if empty
     if(lockEl){ lockEl.style.borderColor=''; lockEl.style.color=''; }
   }
 
@@ -1401,6 +1426,50 @@ function calcPressureResults(){
   } else {
     if(opEl){ opEl.style.borderColor=''; opEl.style.color=''; }
   }
+}
+
+function showPressureSwapAlert(opVal, lockVal){
+  let el = document.getElementById('pressureSwapAlert');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'pressureSwapAlert';
+    el.style.cssText = [
+      'background:#450a0a','border:1px solid #dc2626','border-radius:8px',
+      'padding:12px 14px','margin-bottom:8px','font-size:12px',
+      'color:#fca5a5','line-height:1.5'
+    ].join(';');
+    el.innerHTML = `
+      <strong style="color:#f87171;display:block;margin-bottom:4px">⚠ Pressure values may be swapped</strong>
+      Operating Pressure (${opVal}mbar) cannot exceed Lock-Up Pressure (${lockVal}mbar).
+      Did you enter these the wrong way round?
+      <br><button onclick="swapPressures()" style="margin-top:8px;background:#dc2626;color:#fff;border:none;border-radius:4px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer">Swap Values</button>
+    `;
+    // Insert before the first field in the tests tab
+    const testsCard = document.querySelector('#page-tests .card');
+    if(testsCard) testsCard.parentNode.insertBefore(el, testsCard);
+  }
+  // Update values in the message
+  el.innerHTML = `
+    <strong style="color:#f87171;display:block;margin-bottom:4px">⚠ Pressure values may be swapped</strong>
+    Operating Pressure (${opVal}mbar) cannot exceed Lock-Up Pressure (${lockVal}mbar).
+    Did you enter these the wrong way round?
+    <br><button onclick="swapPressures()" style="margin-top:8px;background:#dc2626;color:#fff;border:none;border-radius:4px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer">Swap Values</button>
+  `;
+  el.style.display = 'block';
+}
+
+function hidePressureSwapAlert(){
+  const el = document.getElementById('pressureSwapAlert');
+  if(el) el.style.display = 'none';
+}
+
+function swapPressures(){
+  const op = gv('opP'), lk = gv('lockP');
+  sv('opP', lk); sv('lockP', op);
+  hidePressureSwapAlert();
+  calcPressureResults();
+  calcAppPressures();
+  toast('Pressure values swapped ✓');
 }
 
 // ── APPLIANCE PRESSURE AUTO-CALC ─────────────────────────
@@ -1449,10 +1518,13 @@ function calcAppPressures(){
     });
 
     // Flueless appliances: flue performance and condition default to N/A
+    // Boiler (0) and Fire (1): default to Pass
     ['a'+i+'fp','a'+i+'fc'].forEach(rname=>{
       const already = document.querySelector(`.ro[data-n="${rname}"] input:checked`);
       if(!already){
-        const val = isFlueless ? 'N/A' : null;
+        let val = null;
+        if(isFlueless) val = 'N/A';
+        else if(i === 0 || i === 1) val = 'Pass'; // Boiler/Water Heater and Fire
         if(val){ const opt = document.querySelector(`.ro[data-n="${rname}"][data-v="${val}"]`); if(opt) opt.click(); }
       }
     });
@@ -1514,6 +1586,18 @@ function toast(msg, type=''){
 
 // ── INIT ─────────────────────────────────────────────────
 buildApps();buildFaults();loadS();autoDate();defaultAlarms();updateProgress();checkDrive();renderParkList();
+
+// ── Warn before refresh if form has content ──
+window.addEventListener('beforeunload', e => {
+  const hasContent = ['ownerName','plotNo','site'].some(id => {
+    const el = document.getElementById(id);
+    return el && el.value.trim() !== '';
+  });
+  if(hasContent){
+    e.preventDefault();
+    e.returnValue = ''; // Required for Chrome
+  }
+});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
 </script>
 </body>

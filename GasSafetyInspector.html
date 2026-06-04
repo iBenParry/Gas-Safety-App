@@ -715,8 +715,8 @@ return `<!DOCTYPE html>
   .c-next-box { background: #000 !important; color: #fff !important;
     text-align: center; display: flex; flex-direction: column;
     align-items: center; justify-content: center; padding: 6px 3px; }
-  .c-nt { font-size: 7pt; font-weight: 900; line-height: 1.3; }
-  .c-nd { font-size: 11pt; font-weight: 900; color: #fff !important; margin-top: 3px; }
+  .c-nt { font-size: 7pt; font-weight: 900; line-height: 1.3; text-align: center; width: 100%; }
+  .c-nd { font-size: 11pt; font-weight: 900; color: #fff !important; margin-top: 3px; text-align: center; width: 100%; display: block; }
 </style>
 </head>
 <body>
@@ -1019,23 +1019,30 @@ async function doPrintFlow(d){
     const pdfBlob = await generatePDF(d, d.certNo);
     console.log('PDF generated:', pdfBlob.size, 'bytes');
 
-    // Step 3: upload to Drive
+    // Step 3: Open print window NOW — before any more async work
+    // Browser only allows window.open without blocking if called
+    // close to a user gesture. We open it here and write content later.
+    updateOverlay('Preparing certificate…');
+    const certHTML = buildCertHTML(d);
+    const w = window.open('', '_blank');
+    if(w){
+      w.document.write(certHTML);
+      w.document.close();
+    }
+
+    // Step 4: upload to Drive in parallel (doesn't block print)
     if(gToken){
       updateOverlay('Saving to Google Drive…');
       await uploadCertToDrive(d, pdfBlob);
       console.log('Drive upload complete');
     } else {
       console.warn('No Drive token — skipping upload');
-      alert('Not connected to Google Drive — certificate will print but NOT be saved.');
     }
 
-    // Step 4: print
-    updateOverlay('Opening print dialog…');
-    const w = window.open('', '_blank');
-    if(w){
-      w.document.write(buildCertHTML(d));
-      w.document.close();
-      setTimeout(()=>w.print(), 700);
+    // Step 5: trigger print on already-open window
+    if(w && !w.closed){
+      updateOverlay('Opening print dialog…');
+      setTimeout(()=>w.print(), 300);
     }
 
   } catch(e){

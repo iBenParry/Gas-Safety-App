@@ -111,16 +111,41 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0b1120;color:#e2e8f0;he
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 @media(max-width:767px){
   html,body{overflow:auto;height:auto}
-  #shell{height:auto;overflow:visible}
-  #content{overflow:visible;height:auto}
-  .page{overflow:visible;height:auto;flex-direction:column}
-  .page.on{display:flex}
+
+  /* Shell: topbar+tabbar stick to top, content scrolls underneath */
+  #shell{height:100vh;overflow:hidden;display:flex;flex-direction:column}
+  #topbar{
+    flex-shrink:0;
+    position:sticky;top:0;z-index:100;
+    /* Stack into two rows on mobile */
+    height:auto;padding:8px 12px;gap:6px;
+    flex-wrap:wrap;
+  }
+  .tbadge{font-size:11px;padding:3px 8px}
+  .ttitle{font-size:12px;min-width:0;flex:1}
+  /* Hide progress bar on mobile — saves space */
+  .tprog{display:none}
+  /* Buttons full-width row below title */
+  .tbtns{
+    width:100%;display:flex;gap:8px;
+    order:3; /* push below title row */
+  }
+  .tbtns .btn{flex:1;justify-content:center;padding:10px 8px;font-size:13px}
+
+  #tabbar{flex-shrink:0;position:sticky;top:0;z-index:99}
+  .tab{font-size:10px;padding:8px 2px}
+
+  /* Content area scrolls */
+  #content{flex:1;overflow-y:auto;overflow-x:hidden;height:auto}
+  .page{overflow:visible;height:auto;flex-direction:column;padding:10px}
+  .page.on{display:flex;gap:12px}
   .s2,.s3,.s4,.sf{grid-column:auto}
+
+  /* Bigger touch targets */
   .f input,.f select,.f textarea{font-size:15px;padding:10px 12px}
-  .ro{padding:8px 10px;font-size:13px}
+  .ro{padding:10px 12px;font-size:14px}
   .ch h2{font-size:11px}
-  #topbar{height:50px}
-  .btn{padding:10px 14px;font-size:13px}
+  .btn{padding:11px 14px;font-size:13px}
 }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>

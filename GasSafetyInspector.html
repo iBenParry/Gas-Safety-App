@@ -1,0 +1,1485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gas Safety Inspector — Caravan</title>
+<style>
+/* ══════════════════════════════════════════════
+   APP SHELL — dark UI for data entry
+══════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:13px;height:100%}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#0b1120;color:#e2e8f0;height:100%;overflow:hidden}
+:root{
+  --bg:#0b1120;--s1:#131d2e;--s2:#1a2740;--s3:#223050;
+  --bd:#2d3f5a;--bd2:#3a5070;--gold:#f59e0b;--gold2:#fbbf24;
+  --text:#e2e8f0;--mut:#7a90a8;
+  --pass:#16a34a;--pbg:#052e16;--fail:#dc2626;--fbg:#450a0a;
+  --r:6px;
+}
+#shell{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+
+/* TOPBAR */
+#topbar{flex-shrink:0;display:flex;align-items:center;gap:10px;padding:0 14px;height:42px;background:var(--s1);border-bottom:1px solid var(--bd)}
+.tbadge{background:var(--gold);color:#000;font-weight:800;font-size:10px;padding:2px 7px;border-radius:3px;letter-spacing:.5px;flex-shrink:0}
+.ttitle{font-size:13px;font-weight:700;flex:1;white-space:nowrap;overflow:hidden}
+.tprog{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.tprog span{font-size:10px;color:var(--mut);min-width:26px;text-align:right}
+.pbar{width:90px;height:3px;background:var(--s3);border-radius:2px}
+.pfill{height:100%;background:var(--gold);border-radius:2px;width:0%;transition:width .3s}
+.tbtns{display:flex;gap:6px;flex-shrink:0}
+
+/* TABBAR */
+#tabbar{flex-shrink:0;display:flex;background:var(--s2);border-bottom:1px solid var(--bd)}
+.tab{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:7px 4px;border:none;background:transparent;color:var(--mut);font-size:11px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;letter-spacing:.3px;white-space:nowrap}
+.tab svg{width:13px;height:13px;stroke-width:2;flex-shrink:0}
+.tab.on{color:var(--gold);border-bottom-color:var(--gold)}
+.tab:hover:not(.on){color:var(--text)}
+
+/* CONTENT */
+#content{flex:1;overflow:hidden;position:relative}
+.page{display:none;width:100%;height:100%;overflow-y:auto;padding:10px 12px;gap:9px}
+.page.on{display:grid}
+.page-form{grid-template-columns:repeat(4,1fr);align-content:start}
+.page-apps{grid-template-columns:repeat(5,1fr);align-content:start}
+.page-tests{grid-template-columns:1fr 1fr;align-content:start}
+.page-faults{grid-template-columns:1fr 1fr;align-content:start}
+.page-settings{grid-template-columns:1fr 1fr 1fr;align-content:start}
+.s2{grid-column:span 2}.s3{grid-column:span 3}.s4{grid-column:span 4}.sf{grid-column:1/-1}
+
+/* CARDS */
+.card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
+.ch{display:flex;align-items:center;gap:6px;background:var(--s2);border-bottom:1px solid var(--bd);padding:5px 10px}
+.ch svg{width:12px;height:12px;color:var(--gold);flex-shrink:0;stroke-width:2.2}
+.ch h2{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--mut)}
+.cb{padding:9px 10px;display:flex;flex-direction:column;gap:7px}
+
+/* FIELDS */
+.f{display:flex;flex-direction:column;gap:3px}
+.f label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--mut)}
+.f input,.f select,.f textarea{background:var(--bg);border:1px solid var(--bd);border-radius:4px;color:var(--text);font-size:12px;padding:5px 7px;width:100%;outline:none;transition:border-color .15s;-webkit-appearance:none;appearance:none;font-family:inherit}
+.f select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%237a90a8' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 7px center;padding-right:24px}
+.f textarea{resize:none;line-height:1.4;font-size:11px}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--gold);background:#131d2e}
+.f input.pre{color:var(--gold2)}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.r3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+
+/* RADIO TOGGLES */
+.rg{display:flex;flex-wrap:wrap;gap:4px}
+.ro{display:flex;align-items:center;justify-content:center;background:var(--bg);border:1px solid var(--bd);border-radius:4px;padding:4px 9px;cursor:pointer;font-size:11px;font-weight:600;transition:all .12s;user-select:none;flex:1;min-width:36px}
+.ro input{display:none}
+.ro.sp{background:var(--pbg);border-color:var(--pass);color:var(--pass)}
+.ro.sf2{background:var(--fbg);border-color:var(--fail);color:var(--fail)}
+.ro.sy{background:var(--pbg);border-color:var(--pass);color:var(--pass)}
+.ro.sn{background:var(--fbg);border-color:var(--fail);color:var(--fail)}
+.ro.sna{background:#1a2740;border-color:#475569;color:#64748b}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;border:none;border-radius:4px;font-size:11px;font-weight:700;padding:6px 12px;cursor:pointer;letter-spacing:.3px;font-family:inherit;transition:opacity .15s,transform .1s;white-space:nowrap}
+.btn:active{transform:scale(.97)}
+.btn svg{width:12px;height:12px;flex-shrink:0}
+.bp{background:var(--gold);color:#000}.bs{background:var(--s3);color:var(--text);border:1px solid var(--bd)}.bd2{background:#7f1d1d;color:var(--text)}
+.bp:hover{background:var(--gold2)}.bs:hover{background:var(--bd)}
+
+/* SETTINGS */
+.note{font-size:10px;color:var(--mut);background:var(--s2);border:1px solid var(--bd);border-radius:4px;padding:7px 9px;line-height:1.5}
+.note strong{color:var(--text)}
+.dv{height:1px;background:var(--bd)}
+.dr{display:flex;align-items:center;gap:8px;padding:3px 0}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.don{background:var(--pass)}.doff{background:var(--mut)}
+
+/* TOAST */
+#overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);
+  z-index:10000;align-items:center;justify-content:center;flex-direction:column;gap:12px;
+}
+#overlay.show{display:flex}
+#overlay-msg{color:#fff;font-size:14px;font-weight:600;font-family:'Segoe UI',sans-serif}
+#overlay-spinner{
+  width:36px;height:36px;border:3px solid #334155;
+  border-top-color:#f59e0b;border-radius:50%;
+  animation:spin 0.8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+#toast{position:fixed;bottom:14px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--s3);border:1px solid var(--bd2);color:var(--text);font-size:11px;font-weight:600;padding:7px 16px;border-radius:20px;opacity:0;transition:all .25s;pointer-events:none;z-index:9999}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* MOBILE */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+@media(max-width:767px){
+  html,body{overflow:auto;height:auto}
+  #shell{height:auto;overflow:visible}
+  #content{overflow:visible;height:auto}
+  .page{overflow:visible;height:auto;flex-direction:column}
+  .page.on{display:flex}
+  .s2,.s3,.s4,.sf{grid-column:auto}
+  .f input,.f select,.f textarea{font-size:15px;padding:10px 12px}
+  .ro{padding:8px 10px;font-size:13px}
+  .ch h2{font-size:11px}
+  #topbar{height:50px}
+  .btn{padding:10px 14px;font-size:13px}
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+<div id="shell">
+
+<!-- TOPBAR -->
+<div id="topbar">
+  <span class="tbadge">KP</span>
+  <span class="ttitle">Gas Safety Inspector — Caravan</span>
+  <div class="tprog">
+    <span id="pct">0%</span>
+    <div class="pbar"><div class="pfill" id="pfill"></div></div>
+  </div>
+  <div class="tbtns">
+    <button class="btn bs" onclick="resetForm()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>New
+    </button>
+    <button class="btn bs" onclick="saveToDrive()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8 19.79 19.79 0 01.22 1.18 2 2 0 012.22 0h3a2 2 0 012 1.72"/></svg>Drive
+    </button>
+    <button class="btn bp" onclick="printCert()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Print Certificate
+    </button>
+  </div>
+</div>
+
+<!-- TABBAR -->
+<nav id="tabbar">
+  <button class="tab on" data-t="form">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Form
+  </button>
+  <button class="tab" data-t="tests">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Tests
+  </button>
+  <button class="tab" data-t="apps">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Appliances
+  </button>
+  <button class="tab" data-t="faults">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Faults
+  </button>
+  <button class="tab" data-t="settings">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Settings
+  </button>
+</nav>
+
+<div id="content">
+
+<!-- FORM TAB -->
+<div class="page page-form on" id="page-form">
+  <div class="card">
+    <div class="ch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><h2>Inspection Details</h2></div>
+    <div class="cb">
+      <div class="r2"><div class="f"><label>Date of Inspection</label><input type="text" id="inspDate" placeholder="DD/MM/YY"></div><div class="f"><label>Issue Date</label><input type="text" id="issueDate" placeholder="DD/MM/YY"></div></div>
+      <div class="r2"><div class="f"><label>Record Serial No</label><input type="text" id="serialNo" placeholder="e.g. GSR-001"></div><div class="f"><label>Report Ref No</label><input type="text" id="refNo" placeholder="e.g. 47C 270972"></div></div>
+      <div class="r2"><div class="f"><label>Stock Card No</label><input type="text" id="stockNo"></div><div class="f"><label>Next Check Before</label><input type="text" id="nextCheck" placeholder="DD/MM/YY"></div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><h2>Caravan Park Details</h2></div>
+    <div class="cb">
+      <div class="f"><label>Select Park</label>
+        <select id="parkSelect" onchange="onParkSelect()">
+          <option value="">— Select a park —</option>
+        </select>
+      </div>
+      <div class="f"><label>Park Name</label><input type="text" id="ownerName" placeholder="Park name"></div>
+      <div class="f"><label>Address</label><input type="text" id="ownerAddr" placeholder="Address"></div>
+      <div class="r2">
+        <div class="f"><label>Postcode</label><input type="text" id="ownerPC" placeholder="Postcode"></div>
+        <div class="f"><label>Tel No</label><input type="tel" id="ownerTel" placeholder="Tel No"></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="1" y="7" width="22" height="12" rx="2"/><path d="M16 19v2M8 19v2M1 11h22"/></svg><h2>Caravan / Site Details</h2></div>
+    <div class="cb">
+      <div class="r2"><div class="f"><label>Vehicle Registration</label><input type="text" id="vehicleReg" style="text-transform:uppercase" placeholder="AB12 CDE"></div><div class="f"><label>Manufacturer</label><input type="text" id="mfr" placeholder="e.g. Bailey, Swift"></div></div>
+      <div class="f"><label>Caravan Park</label><input type="text" id="site" placeholder="e.g. Golden Gate Caravan Park"></div>
+      <div class="f"><label>Plot Number</label><input type="text" id="plotNo" placeholder="e.g. 14"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg><h2>CO &amp; Smoke Alarms</h2></div>
+    <div class="cb">
+      <div class="f"><label>CO Alarms Fitted &amp; Located Correctly?</label><div class="rg"><label class="ro" data-n="coFit" data-v="Yes"><input type="radio" name="coFit" value="Yes">Yes</label><label class="ro" data-n="coFit" data-v="No"><input type="radio" name="coFit" value="No">No</label><label class="ro" data-n="coFit" data-v="N/A"><input type="radio" name="coFit" value="N/A">N/A</label></div></div>
+      <div class="f"><label>CO Alarms In Date?</label><div class="rg"><label class="ro" data-n="coDate" data-v="Yes"><input type="radio" name="coDate" value="Yes">Yes</label><label class="ro" data-n="coDate" data-v="No"><input type="radio" name="coDate" value="No">No</label><label class="ro" data-n="coDate" data-v="N/A"><input type="radio" name="coDate" value="N/A">N/A</label></div></div>
+      <div class="f"><label>Testing of CO Alarms Satisfactory?</label><div class="rg"><label class="ro" data-n="coTest" data-v="Yes"><input type="radio" name="coTest" value="Yes">Yes</label><label class="ro" data-n="coTest" data-v="No"><input type="radio" name="coTest" value="No">No</label><label class="ro" data-n="coTest" data-v="N/A"><input type="radio" name="coTest" value="N/A">N/A</label></div></div>
+      <div class="f"><label>Smoke/Heat Alarms Fitted &amp; Located Correctly?</label><div class="rg"><label class="ro" data-n="smoke" data-v="Yes"><input type="radio" name="smoke" value="Yes">Yes</label><label class="ro" data-n="smoke" data-v="No"><input type="radio" name="smoke" value="No">No</label><label class="ro" data-n="smoke" data-v="N/A"><input type="radio" name="smoke" value="N/A">N/A</label></div></div>
+    </div>
+  </div>
+  <div class="card s2">
+    <div class="ch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg><h2>Gas Engineer — Issuing</h2></div>
+    <div class="cb">
+      <div class="r2"><div class="f"><label>Engineer Name</label><input type="text" id="engName" class="pre"></div><div class="f"><label>Gas Safe Licence No</label><input type="text" id="licNo" class="pre"></div></div>
+    </div>
+  </div>
+  <div class="card s2">
+    <div class="ch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><h2>Other Comments / Observations</h2></div>
+    <div class="cb"><div class="f"><textarea id="comments" rows="3" placeholder="Any additional notes..."></textarea></div></div>
+  </div>
+</div>
+
+<!-- TESTS TAB -->
+<div class="page page-tests" id="page-tests">
+  <div class="card">
+    <div class="ch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><h2>Tightness Tests</h2></div>
+    <div class="cb">
+      <div class="f"><label>Gas Installation Tightness Test — Air</label><div class="rg"><label class="ro" data-n="tAir" data-v="Pass"><input type="radio" name="tAir" value="Pass">Pass</label><label class="ro" data-n="tAir" data-v="Fail"><input type="radio" name="tAir" value="Fail">Fail</label></div></div>
+      <div class="f"><label>Gas Installation Tightness Test — LPG Vapour</label><div class="rg"><label class="ro" data-n="tLPG" data-v="Pass"><input type="radio" name="tLPG" value="Pass">Pass</label><label class="ro" data-n="tLPG" data-v="Fail"><input type="radio" name="tLPG" value="Fail">Fail</label></div></div>
+      <div class="r2"><div class="f"><label>Regulator Lock-Up Pressure (M/Bar)</label><input type="text" id="lockP" inputmode="decimal" placeholder="e.g. 37.5"></div><div class="f"><label>Lock-Up Result</label><div class="rg"><label class="ro" data-n="lockR" data-v="Pass"><input type="radio" name="lockR" value="Pass">Pass</label><label class="ro" data-n="lockR" data-v="Fail"><input type="radio" name="lockR" value="Fail">Fail</label></div></div></div>
+      <div class="r2"><div class="f"><label>Regulator Operating Pressure (M/Bar)</label><input type="text" id="opP" inputmode="decimal" placeholder="e.g. 28"></div><div class="f"><label>Operating Pressure Result</label><div class="rg"><label class="ro" data-n="opR" data-v="Pass"><input type="radio" name="opR" value="Pass">Pass</label><label class="ro" data-n="opR" data-v="Fail"><input type="radio" name="opR" value="Fail">Fail</label></div></div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg><h2>Hoses &amp; Connections</h2></div>
+    <div class="cb">
+      <div class="f"><label>Hose(s) Check</label><div class="rg"><label class="ro" data-n="hose" data-v="Pass"><input type="radio" name="hose" value="Pass">Pass</label><label class="ro" data-n="hose" data-v="Fail"><input type="radio" name="hose" value="Fail">Fail</label></div></div>
+      <div class="f"><label>Cylinder Connection Satisfactory?</label><div class="rg"><label class="ro" data-n="cylConn" data-v="Yes"><input type="radio" name="cylConn" value="Yes">Yes</label><label class="ro" data-n="cylConn" data-v="No"><input type="radio" name="cylConn" value="No">No</label></div></div>
+      <div class="f"><label>Emergency Control Valve Working &amp; Accessible?</label><div class="rg"><label class="ro" data-n="ecv" data-v="Yes"><input type="radio" name="ecv" value="Yes">Yes</label><label class="ro" data-n="ecv" data-v="No"><input type="radio" name="ecv" value="No">No</label></div></div>
+      <!-- numApp auto-calculated from appliances tab -->
+    </div>
+  </div>
+</div>
+
+<!-- APPLIANCES TAB -->
+<div class="page page-apps" id="page-apps"></div>
+
+<!-- FAULTS TAB -->
+<div class="page page-faults" id="page-faults"></div>
+
+<!-- SETTINGS TAB -->
+<div class="page page-settings" id="page-settings">
+  <div class="card">
+    <div class="ch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg><h2>Business Details</h2></div>
+    <div class="cb">
+      <p class="note">Your details are pre-loaded below. Edit and save if anything changes.</p>
+      <div class="r2"><div class="f"><label>Gas Safe Reg No</label><input type="text" id="s_reg" placeholder="e.g. 123456"></div><div class="f"><label>Company Name</label><input type="text" id="s_co"></div></div>
+      <div class="f"><label>Address Line 1</label><input type="text" id="s_a1"></div>
+      <div class="f"><label>Address Line 2</label><input type="text" id="s_a2"></div>
+      <div class="r2"><div class="f"><label>Postcode</label><input type="text" id="s_pc"></div><div class="f"><label>Tel No</label><input type="tel" id="s_tel"></div></div>
+      <div class="dv"></div>
+      <div class="r2"><div class="f"><label>Engineer Name</label><input type="text" id="s_eng"></div><div class="f"><label>Gas Safe Licence No</label><input type="text" id="s_lic"></div></div>
+      <button class="btn bp" onclick="saveSets()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>Save My Details</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8"/></svg><h2>Google Drive</h2></div>
+    <div class="cb">
+      <div class="dr">
+        <div class="dot doff" id="driveDot"></div>
+        <span id="driveText" style="font-size:12px;font-weight:600">Not connected</span>
+      </div>
+      <p class="note">Certificates and park data are stored in your Google Drive under <strong style="color:var(--text)">Caravan Gas Safety Checks</strong>.</p>
+      <button class="btn bs" id="driveBtn" onclick="toggleDrive()" style="width:auto">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8 19.79 19.79 0 01.22 1.18 2 2 0 012.22 0h3a2 2 0 012 1.72"/></svg>
+        Connect Google Drive
+      </button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><h2>Caravan Parks</h2></div>
+    <div class="cb">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+        <p class="note" style="flex:1;margin:0">Add parks here — select one on the Form tab to auto-fill address details.</p>
+        <span id="parkSyncStatus" style="font-size:10px;white-space:nowrap;color:#94a3b8"></span>
+      </div>
+      <button class="btn bs" onclick="syncParksWithDrive()" style="width:auto">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>
+        Sync Parks with Drive
+      </button>
+      <div id="parkList" style="display:flex;flex-direction:column;gap:6px"></div>
+      <div class="dv"></div>
+      <p style="font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px">Add New Park</p>
+      <div class="f"><label>Park Name</label><input type="text" id="np_name" placeholder="e.g. Sunny Sands Holiday Park"></div>
+      <div class="f"><label>Address</label><input type="text" id="np_addr" placeholder="Address"></div>
+      <div class="r2"><div class="f"><label>Postcode</label><input type="text" id="np_pc"></div><div class="f"><label>Tel No</label><input type="tel" id="np_tel"></div></div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text);cursor:pointer;padding:4px 0">
+        <input type="checkbox" id="np_service" checked style="width:16px;height:16px;cursor:pointer;accent-color:#f59e0b">
+        We service appliances at this park
+      </label>
+      <button class="btn bp" onclick="addPark()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Park</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><h2>Install &amp; Use</h2></div>
+    <div class="cb">
+      <p class="note"><strong>On Android:</strong> Open in Chrome → three-dot menu → "Add to Home Screen". Works fully offline once installed.</p>
+      <p class="note"><strong>Bluetooth printing:</strong> Pair your thermal printer once in Android Settings, then tap "Print Certificate" — Chrome connects automatically.</p>
+      <p class="note"><strong>On PC:</strong> Open this HTML file directly in Chrome — no server needed.</p>
+      <p class="note">Kevin Parry Plumbing &amp; Heating | Gas Safety Inspector v3.0</p>
+    </div>
+  </div>
+</div>
+
+</div><!-- #content -->
+</div><!-- #shell -->
+<div id="toast"></div>
+<div id="overlay"><div id="overlay-spinner"></div><div id="overlay-msg">Processing…</div></div>
+
+<div id="drive-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:20000;align-items:center;justify-content:center">
+  <div style="background:#1e293b;border:1px solid #334155;border-radius:10px;padding:28px 24px;max-width:340px;width:90%;text-align:center;font-family:'Segoe UI',sans-serif">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.5" style="width:40px;height:40px;margin-bottom:12px"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8 19.79 19.79 0 01.22 1.18 2 2 0 012.22 0h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.06 6.06l1.27-1.27a2 2 0 012.11-.45c.9.333 1.84.566 2.81.7A2 2 0 0122 16.92z"/></svg>
+    <h2 style="color:#f1f5f9;font-size:16px;font-weight:700;margin-bottom:8px">Connect Google Drive</h2>
+    <p style="color:#94a3b8;font-size:13px;line-height:1.5;margin-bottom:20px">Sign in to Google Drive to save certificates and sync your park list automatically.</p>
+    <button onclick="connectDriveFromModal()" style="background:#f59e0b;color:#000;border:none;border-radius:6px;padding:11px 24px;font-size:14px;font-weight:700;cursor:pointer;width:100%;margin-bottom:10px">Sign in to Google Drive</button>
+    <button onclick="dismissDriveModal()" style="background:transparent;color:#64748b;border:none;font-size:12px;cursor:pointer;padding:4px">Skip for now (certificates won't be saved)</button>
+  </div>
+</div>
+
+<script>
+// ── TABS ──────────────────────────────────────────────────
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>switchTab(t.dataset.t)));
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on',p.id==='page-'+t));
+}
+
+// ── RADIOS ────────────────────────────────────────────────
+document.addEventListener('click',e=>{
+  const ro=e.target.closest('.ro');if(!ro)return;
+  const n=ro.dataset.n,v=ro.dataset.v;
+  document.querySelectorAll(`.ro[data-n="${n}"]`).forEach(o=>{o.classList.remove('sp','sf2','sy','sn','sna');o.querySelector('input').checked=false});
+  const cls=v==='Pass'?'sp':v==='Fail'?'sf2':v==='Yes'?'sy':v==='No'?'sn':'sna';
+  ro.classList.add(cls);ro.querySelector('input').checked=true;
+  updateProgress();
+});
+
+// ── PROGRESS ──────────────────────────────────────────────
+document.addEventListener('input', e => {
+  updateProgress();
+  if(e.target.id === 'opP' || /^a\d+mk$/.test(e.target.id)) calcAppPressures();
+  if(e.target.id === 'lockP' || e.target.id === 'opP') calcPressureResults();
+});
+function updateProgress(){
+  const req=['inspDate','ownerName','vehicleReg','mfr','engName','licNo'];
+  const done=req.filter(id=>{const e=document.getElementById(id);return e&&e.value.trim()}).length;
+  const pct=Math.round(done/req.length*100);
+  const f=document.getElementById('pfill'),p=document.getElementById('pct');
+  if(f)f.style.width=pct+'%';if(p)p.textContent=pct+'%';
+}
+
+// ── BUILD APPLIANCES ──────────────────────────────────────
+const APPS=['Boiler/Water Heater','Fire','Cooker','Hob','Other'];
+const YN=['','Y','N','N/A'],FL=['','Room Sealed','Open-Flued','Flueless'];
+function buildApps(){
+  const c=document.getElementById('page-apps');if(!c)return;
+  c.innerHTML=APPS.map((name,i)=>`
+  <div class="card">
+    <div class="ch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:12px;height:12px;color:#f59e0b;stroke-width:2.2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg><h2>${name}</h2></div>
+    <div class="cb">
+      <div class="f"><label>Make</label><input type="text" id="a${i}mk" placeholder="e.g. Truma"></div>
+      <div class="f"><label>Model</label><input type="text" id="a${i}mo"></div>
+      <div class="r2"><div class="f"><label>Inspected?</label><select id="a${i}in">${YN.map(o=>`<option>` + o + `</option>`).join('')}</select></div><div class="f"><label>Serviced?</label><select id="a${i}sv">${YN.map(o=>`<option>` + o + `</option>`).join('')}</select></div></div>
+      <div class="f"><label>Op. Pressure (mbar) <span style="font-size:8px;color:#f59e0b;font-weight:400;text-transform:none">auto</span></label><input type="text" id="a${i}pr" inputmode="decimal" readonly style="color:#fbbf24;background:#0d1a2e;cursor:default" placeholder="auto"></div>
+      <div class="f"><label>Safety Devices</label><div class="rg"><label class="ro" data-n="a${i}sd" data-v="Pass"><input type="radio" name="a${i}sd" value="Pass">Pass</label><label class="ro" data-n="a${i}sd" data-v="Fail"><input type="radio" name="a${i}sd" value="Fail">Fail</label><label class="ro" data-n="a${i}sd" data-v="N/A"><input type="radio" name="a${i}sd" value="N/A">N/A</label></div></div>
+      <div class="f"><label>Ventilation</label><div class="rg"><label class="ro" data-n="a${i}ve" data-v="Pass"><input type="radio" name="a${i}ve" value="Pass">Pass</label><label class="ro" data-n="a${i}ve" data-v="Fail"><input type="radio" name="a${i}ve" value="Fail">Fail</label><label class="ro" data-n="a${i}ve" data-v="N/A"><input type="radio" name="a${i}ve" value="N/A">N/A</label></div></div>
+      <div class="f"><label>Flue Type</label><select id="a${i}fl">
+        ${(()=>{
+          if(i===0) return '<option value="">-</option><option>Room Sealed</option><option>Open-Flued</option>';
+          if(i===1) return '<option value="Open-Flued" selected>Open-Flued</option>';
+          if(i===2||i===3) return '<option value="Flueless" selected>Flueless</option>';
+          return '<option value="">-</option><option>Room Sealed</option><option>Open-Flued</option><option>Flueless</option>';
+        })()}
+      </select></div>
+      <div class="r2">
+        <div class="f"><label>Initial Reading</label><input type="text" id="a${i}ir" placeholder="${i===0?'ppm/%CO₂':'N/A'}" ${i!==0?'readonly style="color:#4b5563;background:#0d1a2e;cursor:default"':''}></div>
+        <div class="f"><label>Final Reading</label><input type="text" id="a${i}fr" placeholder="${i===0?'ppm/%CO₂':'N/A'}" ${i!==0?'readonly style="color:#4b5563;background:#0d1a2e;cursor:default"':''}></div>
+      </div>
+      <div class="f"><label>Flue Performance</label><div class="rg"><label class="ro" data-n="a${i}fp" data-v="Pass"><input type="radio" name="a${i}fp" value="Pass">Pass</label><label class="ro" data-n="a${i}fp" data-v="Fail"><input type="radio" name="a${i}fp" value="Fail">Fail</label><label class="ro" data-n="a${i}fp" data-v="N/A"><input type="radio" name="a${i}fp" value="N/A">N/A</label></div></div>
+      <div class="f"><label>Flue Condition</label><div class="rg"><label class="ro" data-n="a${i}fc" data-v="Pass"><input type="radio" name="a${i}fc" value="Pass">Pass</label><label class="ro" data-n="a${i}fc" data-v="Fail"><input type="radio" name="a${i}fc" value="Fail">Fail</label><label class="ro" data-n="a${i}fc" data-v="N/A"><input type="radio" name="a${i}fc" value="N/A">N/A</label></div></div>
+      <div class="f"><label>Safe to Use?</label><div class="rg"><label class="ro" data-n="a${i}su" data-v="Yes"><input type="radio" name="a${i}su" value="Yes">Yes</label><label class="ro" data-n="a${i}su" data-v="No"><input type="radio" name="a${i}su" value="No">No</label></div></div>
+    </div>
+  </div>`).join('');
+}
+
+// ── BUILD FAULTS ──────────────────────────────────────────
+function buildFaults(){
+  const c=document.getElementById('page-faults');if(!c)return;
+  c.innerHTML=Array.from({length:5},(_,i)=>i+1).map(i=>`
+  <div class="card">
+    <div class="ch"><div style="width:17px;height:17px;background:#f59e0b;color:#000;font-weight:800;font-size:9px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">${i}</div><h2 style="margin-left:2px">Fault ${i}</h2></div>
+    <div class="cb">
+      <div class="f"><label>Fault Detail</label><input type="text" id="f${i}d" placeholder="Describe the fault..."></div>
+      <div class="f"><label>Rectification Work Done</label><input type="text" id="f${i}r" placeholder="Work carried out..."></div>
+      <div class="r2"><div class="f"><label>By Whom</label><input type="text" id="f${i}b"></div><div class="f"><label>Owner Informed?</label><div class="rg"><label class="ro" data-n="f${i}oi" data-v="Yes"><input type="radio" name="f${i}oi" value="Yes">Yes</label><label class="ro" data-n="f${i}oi" data-v="No"><input type="radio" name="f${i}oi" value="No">No</label></div></div></div>
+      <div class="r2"><div class="f"><label>Warning Notice Issued?</label><div class="rg"><label class="ro" data-n="f${i}wn" data-v="Yes"><input type="radio" name="f${i}wn" value="Yes">Yes</label><label class="ro" data-n="f${i}wn" data-v="No"><input type="radio" name="f${i}wn" value="No">No</label></div></div><div class="f"><label>Warning Tag/Sticker Fixed?</label><div class="rg"><label class="ro" data-n="f${i}ts" data-v="Yes"><input type="radio" name="f${i}ts" value="Yes">Yes</label><label class="ro" data-n="f${i}ts" data-v="No"><input type="radio" name="f${i}ts" value="No">No</label></div></div></div>
+    </div>
+  </div>`).join('');
+}
+
+// ── SETTINGS ──────────────────────────────────────────────
+const SK='gsr_v3';
+const DEFAULT_CLIENT_ID='1093962453246-cdvefmotep8kr6ea83jiarf9d1veot3i.apps.googleusercontent.com';
+let GCID=localStorage.getItem('gsr_cid')||DEFAULT_CLIENT_ID;
+
+// ── COMPANY DEFAULTS — pre-baked, overridden by saved settings ──
+const DEFAULTS={
+  regNo:'164609',
+  company:'Kevin Parry Plumbing & Heating',
+  address1:'5 Plas Uchaf Avenue, Prestatyn',
+  address2:'',
+  postcode:'LL19 9NR',
+  tel:'01745 887952',
+  engName:'Ben Parry',
+  licenceNo:'5990895'
+};
+
+function getS(){
+  try{
+    const saved=JSON.parse(localStorage.getItem(SK)||'{}');
+    // Merge: saved values win, fall back to baked-in defaults
+    return Object.assign({},DEFAULTS,saved);
+  }catch{return Object.assign({},DEFAULTS)}
+}
+function loadS(){
+  const s=getS();
+  [['s_reg','regNo'],['s_co','company'],['s_a1','address1'],['s_a2','address2'],['s_pc','postcode'],['s_tel','tel'],['s_eng','engName'],['s_lic','licenceNo']].forEach(([sid,k])=>sv(sid,s[k]||''));
+  sv('engName',s.engName||'');sv('licNo',s.licenceNo||'');
+  // s_cid field removed
+}
+function saveSets(){
+  const s={regNo:gv('s_reg'),company:gv('s_co'),address1:gv('s_a1'),address2:gv('s_a2'),postcode:gv('s_pc'),tel:gv('s_tel'),engName:gv('s_eng'),licenceNo:gv('s_lic')};
+  // Client ID is hardcoded — no need to save from UI
+  localStorage.setItem(SK,JSON.stringify(s));
+  sv('engName',s.engName);sv('licNo',s.licenceNo);
+  toast('Saved ✓');
+}
+function autoDate(){
+  const now=new Date();
+  const fmt=d=>[String(d.getDate()).padStart(2,'0'),String(d.getMonth()+1).padStart(2,'0'),String(d.getFullYear()).slice(-2)].join('/');
+  sv('inspDate',fmt(now));sv('issueDate',fmt(now));
+  const nx=new Date(now);nx.setFullYear(nx.getFullYear()+1);sv('nextCheck',fmt(nx));
+}
+function defaultAlarms(){
+  // CO & smoke alarms — all Yes
+  ['coFit','coDate','coTest','smoke'].forEach(name=>{
+    const opt=document.querySelector(`.ro[data-n="${name}"][data-v="Yes"]`);
+    if(opt) opt.click();
+  });
+  // Tests tab — all Pass/Yes (pressure results auto-calculated separately)
+  ['tAir','tLPG','hose','cylConn','ecv'].forEach(name=>{
+    const val=(['cylConn','ecv'].includes(name))?'Yes':'Pass';
+    const opt=document.querySelector(`.ro[data-n="${name}"][data-v="${val}"]`);
+    if(opt) opt.click();
+  });
+}
+function resetForm(){
+  if(!confirm('Start a new certificate? Current data will be cleared.'))return;
+  const keep=new Set(['engName','licNo']);
+  document.querySelectorAll('input[type=text],input[type=tel],textarea').forEach(el=>{if(!keep.has(el.id))el.value=''});
+  document.querySelectorAll('select').forEach(el=>el.selectedIndex=0);
+  document.querySelectorAll('.ro').forEach(o=>{o.classList.remove('sp','sf2','sy','sn','sna');o.querySelector('input').checked=false});
+  autoDate();defaultAlarms();calcAppPressures();updateProgress();toast('New certificate ready');switchTab('form');
+}
+
+// ── GOOGLE DRIVE ──────────────────────────────────────────
+let gToken=null;
+function checkDrive(){
+  const t=sessionStorage.getItem('gsr_tok'),e=parseInt(sessionStorage.getItem('gsr_exp')||'0');
+  gToken=(t&&Date.now()<e)?t:null;
+  updateDriveUI();
+  if(gToken){
+    syncParksWithDrive();
+    setTimeout(()=>toast('Google Drive connected ✓','success'), 800);
+  } else {
+    // Not connected — show login modal after short delay so page loads first
+    setTimeout(showDriveModal, 1000);
+  }
+}
+function showDriveModal(){
+  const m=document.getElementById('drive-modal');
+  if(m) m.style.display='flex';
+}
+function dismissDriveModal(){
+  const m=document.getElementById('drive-modal');
+  if(m) m.style.display='none';
+}
+function connectDriveFromModal(){
+  dismissDriveModal();
+  toggleDrive();
+}
+
+
+function updateDriveUI(showToast=false){
+  const dot=document.getElementById('driveDot'),txt=document.getElementById('driveText'),btn=document.getElementById('driveBtn');
+  if(!dot)return;
+  if(gToken){
+    dot.className='dot don';
+    if(txt){ txt.textContent='Connected to Google Drive'; txt.style.color='#4ade80'; }
+    if(btn){ btn.textContent='Disconnect'; btn.style.background=''; }
+    if(showToast) toast('Connected to Google Drive ✓', 'success');
+  }else{
+    dot.className='dot doff';
+    if(txt){ txt.textContent='Not connected'; txt.style.color=''; }
+    if(btn){ btn.textContent='Connect Google Drive'; }
+  }
+}
+function toggleDrive(){if(gToken){gToken=null;sessionStorage.removeItem('gsr_tok');sessionStorage.removeItem('gsr_exp');updateDriveUI();toast('Disconnected');return}if(!GCID){toast('Add your Google Client ID in Settings first');return}const r=encodeURIComponent(location.origin+'/');const url=`https://accounts.google.com/o/oauth2/v2/auth?client_id=${GCID}&redirect_uri=${r}&response_type=token&scope=https://www.googleapis.com/auth/drive`;const pop=window.open(url,'gdrive','width=500,height=600');const t=setInterval(()=>{try{const h=pop.location.hash;if(h&&h.includes('access_token')){clearInterval(t);pop.close();const p=new URLSearchParams(h.slice(1));gToken=p.get('access_token');const ex=parseInt(p.get('expires_in')||'3600');sessionStorage.setItem('gsr_tok',gToken);sessionStorage.setItem('gsr_exp',String(Date.now()+ex*1000));updateDriveUI(true);syncParksWithDrive();dismissDriveModal();}}catch(e){}if(pop.closed){clearInterval(t);checkDrive()}},500)}
+async function saveToDrive(){if(!gToken){toast('Connect Google Drive first');switchTab('settings');return}const d=collect();const name=`GasSafety_${(d.ownerName||'Unknown').replace(/\s+/g,'_')}_${(d.inspDate||'').replace(/\//g,'-')}.html`;toast('Uploading…');const blob=new Blob([buildCertHTML(d)],{type:'text/html'});const fm=new FormData();fm.append('metadata',new Blob([JSON.stringify({name,mimeType:'text/html'})],{type:'application/json'}));fm.append('file',blob);const res=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{method:'POST',headers:{Authorization:`Bearer ${gToken}`},body:fm});toast(res.ok?`Saved: ${name} ✓`:'Upload failed')}
+
+// ── COLLECT ALL FORM DATA ─────────────────────────────────
+function collect(){
+  const r=n=>{const e=document.querySelector(`input[name="${n}"]:checked`);return e?e.value:''};
+  const sel=id=>{const e=document.getElementById(id);return e?e.value:''};
+  const s=getS();
+  return{
+    inspDate:gv('inspDate'),issueDate:gv('issueDate'),serialNo:gv('serialNo'),refNo:gv('refNo'),stockNo:gv('stockNo'),nextCheck:gv('nextCheck'),
+    ownerName:gv('ownerName'),ownerAddr:gv('ownerAddr'),ownerPC:gv('ownerPC'),ownerTel:gv('ownerTel'),
+    vehicleReg:gv('vehicleReg'),mfr:gv('mfr'),site:gv('site'),plotNo:gv('plotNo'),
+    coFit:r('coFit'),coDate:r('coDate'),coTest:r('coTest'),smoke:r('smoke'),
+    tAir:r('tAir'),tLPG:r('tLPG'),lockP:gv('lockP'),lockR:r('lockR'),
+    opP:gv('opP'),opR:r('opR'),hose:r('hose'),cylConn:r('cylConn'),ecv:r('ecv'),numApp:String(APPS.filter((_,i)=>gv('a'+i+'mk')||gv('a'+i+'mo')).length),
+    comments:gv('comments'),engName:gv('engName'),licNo:gv('licNo'),
+    company:s.company||'',address1:s.address1||'',address2:s.address2||'',postcode:s.postcode||'',tel:s.tel||'',regNo:s.regNo||'',
+    appliances:APPS.map((nm,i)=>({name:nm,make:gv(`a${i}mk`),model:gv(`a${i}mo`),insp:sel(`a${i}in`),serv:sel(`a${i}sv`),press:gv(`a${i}pr`),sd:r(`a${i}sd`),vent:r(`a${i}ve`),flue:sel(`a${i}fl`),ir:gv(`a${i}ir`),fr:gv(`a${i}fr`),fp:r(`a${i}fp`),fc:r(`a${i}fc`),su:r(`a${i}su`)})),
+    faults:Array.from({length:5},(_,i)=>i+1).map(i=>({detail:gv(`f${i}d`),rect:gv(`f${i}r`),by:gv(`f${i}b`),oi:r(`f${i}oi`),wn:r(`f${i}wn`),ts:r(`f${i}ts`)}))
+  };
+}
+
+// ══════════════════════════════════════════════════════════
+//  BUILD CERTIFICATE — exact REGP47 A4 landscape replica
+// ══════════════════════════════════════════════════════════
+function buildCertHTML(d){
+  const chk=(val,opt)=>`<span style="display:inline-flex;align-items:center;gap:2px;margin-right:5px"><span style="display:inline-block;width:8px;height:8px;border:0.8px solid #000;background:${val===opt?'#000':'#fff'};flex-shrink:0"></span><span style="font-size:6pt">${opt}</span></span>`;
+  // Pass/Fail with strikethrough on the non-selected option
+  const pfStrike=val=>{
+    const pass=val==='Pass'?'<strong style="color:#006400">Pass</strong>':'<span style="color:#aaa;text-decoration:line-through">Pass</span>';
+    const fail=val==='Fail'?'<strong style="color:#8b0000">Fail</strong>':'<span style="color:#aaa;text-decoration:line-through">Fail</span>';
+    return val?pass+' / '+fail:(pass+' / '+fail).replace(/style="/g,'style="opacity:0.4;');
+  };
+  // Yes/No with strikethrough on the non-selected option
+  const ynStrike=val=>{
+    const yes=val==='Yes'?'<strong style="color:#006400">Yes</strong>':'<span style="color:#aaa;text-decoration:line-through">Yes</span>';
+    const no=val==='No'?'<strong style="color:#8b0000">No</strong>':'<span style="color:#aaa;text-decoration:line-through">No</span>';
+    return val?yes+' / '+no:'Yes / No';
+  };
+  // mbar suffix — appends "mbar" if a value is present
+  const mbar=val=>val?`${val}mbar`:'';
+  const pf=val=>`<strong style="color:${val==='Pass'?'#006400':val==='Fail'?'#8b0000':'#555'}">${val||''}</strong>`;
+  const yn=val=>`<strong style="color:${val==='Yes'?'#006400':val==='No'?'#8b0000':'#555'}">${val||''}</strong>`;
+
+  const appRows = APPS.map((nm,i)=>{
+    const a=d.appliances[i];
+    const hasData = !!(a.make); // only trigger auto-values when Make is filled
+    return `<tr>
+      <td style="padding:0 2px;font-size:5.5pt;font-weight:600;background:#f2f2f2;white-space:nowrap">${a.name}</td>
+      <td style="padding:0 2px;font-size:5.5pt">${a.make}</td>
+      <td style="padding:0 2px;font-size:5.5pt">${a.model}</td>
+      <td style="text-align:center;font-size:5.5pt">${a.insp}</td>
+      <td style="text-align:center;font-size:5.5pt">${a.serv}</td>
+      <td style="text-align:center;font-size:5.5pt">${hasData?'Y':''}</td>
+      <td style="text-align:center;font-size:5.5pt">${hasData?a.press:''}</td>
+      <td style="text-align:center;font-size:5.5pt">${hasData?pf(a.sd):''}</td>
+      <td style="text-align:center;font-size:5.5pt">${hasData?pf(a.vent):''}</td>
+      <td style="text-align:center;font-size:5.5pt">${hasData?a.flue:''}</td>
+      <td style="text-align:center;font-size:5.5pt">${hasData?(i===0?a.ir:'N/A'):''}</td>
+      <td style="text-align:center;font-size:5.5pt">${hasData?(i===0?a.fr:'N/A'):''}</td>
+      <td style="text-align:center;font-size:5.5pt">${hasData?pf(a.fp):''}</td>
+      <td style="text-align:center;font-size:5.5pt">${hasData?pf(a.fc):''}</td>
+      <td style="text-align:center;font-size:5.5pt;font-weight:700;color:${a.su==='Yes'?'#006400':a.su==='No'?'#8b0000':'#000'}">${hasData?a.su:''}</td>
+    </tr>`;
+  }).join('');
+
+  const faultRows = d.faults.map((f,i)=>`
+    <tr>
+      <td style="text-align:center;font-size:6pt;font-weight:700;background:#f2f2f2">${i+1}</td>
+      <td style="padding:0 4px;font-size:6pt">${f.detail}</td>
+      <td style="padding:0 4px;font-size:6pt">${f.rect}</td>
+      <td style="padding:0 3px;font-size:6pt">${f.by}</td>
+      <td style="text-align:center;font-size:6pt">${yn(f.oi)}</td>
+      <td style="text-align:center;font-size:6pt">${yn(f.wn)}</td>
+      <td style="text-align:center;font-size:6pt">${yn(f.ts)}</td>
+    </tr>`).join('');
+
+  // Fill empty fault rows so table always has 5
+  const emptyFaultRows = Array.from({length: Math.max(0, 5 - d.faults.length)}, (_,i)=>`
+    <tr>
+      <td style="text-align:center;font-size:6pt;font-weight:700;background:#f2f2f2">${d.faults.length+i+1}</td>
+      <td></td><td></td><td></td><td></td><td></td><td></td>
+    </tr>`).join('');
+
+return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Gas Safety Record — ${d.ownerName||'Unknown'} — ${d.inspDate}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important; }
+
+  html, body { width: 1122px; height: 794px; background: #fff;
+    color: #000; font-family: Arial, sans-serif; font-size: 7pt;
+    overflow: hidden; }
+
+  .c-wrap { width: 1122px; height: 794px; display: flex;
+    flex-direction: column; gap: 2px; padding: 6px; background: #fff; }
+
+  /* Section headings */
+  .c-sh { background: #000 !important; color: #fff !important;
+    font-weight: 700; font-size: 6pt; padding: 1px 4px;
+    letter-spacing: 0.3px; }
+
+  /* Header bar */
+  .c-hdr { display: flex; align-items: stretch; border: 1px solid #000;
+    flex-shrink: 0; height: 20px; }
+  .c-hdr-logo { background: #000 !important; color: #fff !important;
+    font-weight: 900; font-size: 10pt; padding: 2px 7px;
+    display: flex; align-items: center; border-right: 1px solid #000; flex-shrink: 0; }
+  .c-hdr-logo span { background: #fff !important; color: #000 !important;
+    display: block; padding: 0 3px; font-style: italic; }
+  .c-hdr-types { display: flex; align-items: center; gap: 10px;
+    padding: 0 8px; font-size: 7.5pt; font-weight: 700; flex: 1; }
+  .c-hdr-title { background: #000 !important; color: #fff !important;
+    font-size: 9pt; font-weight: 900; padding: 0 8px;
+    display: flex; align-items: center; flex-shrink: 0; }
+  .c-hdr-ref { padding: 2px 5px; font-size: 6pt; display: flex;
+    flex-direction: column; justify-content: center;
+    border-left: 1px solid #000; flex-shrink: 0; text-align: center; min-width: 52px; }
+  .c-rn { font-size: 8pt; font-weight: 900; }
+  .c-cbox { display: inline-flex; align-items: center; gap: 2px; }
+  .c-sq { width: 8px; height: 8px; border: 1px solid #000;
+    display: inline-block; flex-shrink: 0; }
+
+  /* 3-col top row */
+  .c-row1 { display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 2px; flex-shrink: 0; height: 68px; }
+
+  /* Boxes */
+  .c-box { border: 0.5px solid #777; overflow: hidden; height: 100%; }
+  .c-bp { padding: 2px 4px; height: calc(100% - 10px); }
+
+  /* Field rows */
+  .c-fr { display: flex; gap: 2px; margin-bottom: 1px;
+    align-items: baseline; }
+  .c-fl { font-size: 5pt; color: #333; white-space: nowrap; flex-shrink: 0; }
+  .c-fv { flex: 1; border-bottom: 0.4px solid #aaa;
+    font-size: 6.5pt; padding: 0 2px; min-height: 9px; font-weight: 600; }
+
+  /* CO alarms */
+  .c-co-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;
+    border: 0.5px solid #777; flex-shrink: 0; height: 18px; }
+  .c-co-cell { padding: 2px 4px; border-right: 0.5px solid #aaa; }
+  .c-co-cell:last-child { border-right: none; }
+
+  /* Appliance table — fixed height */
+  .c-app-wrap { border: 0.5px solid #777; flex-shrink: 0; height: 180px; display: flex; flex-direction: column; }
+  .c-app-hdr-row { display: grid; grid-template-columns: 1fr 1fr; flex-shrink: 0; }
+  .c-app-table { width: 100%; border-collapse: collapse; flex: 1; }
+  .c-app-table th { background: #000 !important; color: #fff !important;
+    font-size: 4.5pt; padding: 1px 1.5px; text-align: center;
+    border: 0.4px solid #555; line-height: 1.1; }
+  .c-app-table td { border: 0.4px solid #ccc; vertical-align: middle; }
+  .c-th-grp { background: #333 !important; color: #fff !important; }
+
+  /* Installation */
+  .c-inst-wrap { border: 0.5px solid #777; flex-shrink: 0; }
+  .c-inst-inner { display: grid; grid-template-columns: 1fr 1fr 1fr; }
+  .c-inst-col { padding: 2px 5px; border-right: 0.5px solid #aaa; }
+  .c-inst-col:last-child { border-right: none; }
+  .c-inst-row { display: flex; align-items: baseline; gap: 3px; margin-bottom: 1.5px; }
+  .c-inst-label { font-size: 5.5pt; flex: 1; }
+  .c-inst-val { font-size: 6pt; font-weight: 700; min-width: 18px; }
+  .pf-pass { color: #006400; font-weight: 700; }
+  .pf-fail { color: #8b0000; font-weight: 700; }
+
+  /* Faults — fill remaining space */
+  .c-fault-wrap { border: 0.5px solid #777; flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .c-fault-table { width: 100%; border-collapse: collapse; height: 100%; }
+  .c-fault-table th { background: #000 !important; color: #fff !important;
+    font-size: 5pt; padding: 1px 3px; text-align: center;
+    border: 0.4px solid #555; }
+  .c-fault-table td { border: 0.4px solid #ccc; vertical-align: middle; }
+  .c-fault-table tbody tr { height: 20%; }
+
+  /* Bottom row */
+  .c-row-bot { display: grid; grid-template-columns: 2.5fr 0.7fr 1.4fr;
+    gap: 2px; flex-shrink: 0; height: 72px; }
+  .c-next-box { background: #000 !important; color: #fff !important;
+    text-align: center; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; padding: 3px; }
+  .c-nt { font-size: 7pt; font-weight: 900; line-height: 1.3; }
+  .c-nd { font-size: 11pt; font-weight: 900; color: #fff !important; margin-top: 3px; }
+</style>
+</head>
+<body>
+<div class="c-wrap">
+
+<!-- HEADER -->
+<div class="c-hdr">
+  <div class="c-hdr-logo"><span>KP</span></div>
+  <div class="c-hdr-types">
+    <span class="c-cbox"><span class="c-sq" style="background:#000"></span>&nbsp;CARAVAN*</span>
+    <span class="c-cbox"><span class="c-sq" style="background:#fff"></span>&nbsp;BOAT*</span>
+    <span class="c-cbox"><span class="c-sq" style="background:#fff"></span>&nbsp;LEISURE VEHICLE*</span>
+  </div>
+  <div class="c-hdr-title">GAS SAFETY INSPECTION RECORD</div>
+  <div class="c-hdr-ref"><div style="font-size:5pt">Cert No:</div><div class="c-rn">${d.certNo||d.refNo||'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</div></div>
+</div>
+
+<!-- ROW 1: Business / Inspection+Location / Owner -->
+<div class="c-row1">
+  <div class="c-box">
+    <div class="c-sh">REGISTERED BUSINESS DETAILS</div>
+    <div class="c-bp">
+      <div class="c-fr"><span class="c-fl">Reg No:</span><span class="c-fv">${d.regNo}</span></div>
+      <div class="c-fr"><span class="c-fl">Company:</span><span class="c-fv">${d.company}</span></div>
+      <div class="c-fr"><span class="c-fl">Address:</span><span class="c-fv">${d.address1}</span></div>
+      <div class="c-fr"><span class="c-fl"></span><span class="c-fv">${d.address2||'&nbsp;'}</span></div>
+      <div class="c-fr"><span class="c-fl">Postcode:</span><span class="c-fv" style="max-width:48px">${d.postcode}</span><span class="c-fl" style="margin-left:5px">Tel:</span><span class="c-fv">${d.tel}</span></div>
+    </div>
+  </div>
+  <div class="c-box">
+    <div class="c-sh">INSPECTION RECORD DETAILS</div>
+    <div class="c-bp">
+      <div class="c-fr"><span class="c-fl">Date of Inspection:</span><span class="c-fv"><strong>${d.inspDate}</strong></span></div>
+      <div class="c-fr"><span class="c-fl">Record Serial No:</span><span class="c-fv">${d.serialNo}</span></div>
+      <div class="c-fr"><span class="c-fl">Stock Card No:</span><span class="c-fv">${d.stockNo}</span></div>
+    </div>
+    <div class="c-sh">INSPECTION LOCATION</div>
+    <div class="c-bp">
+      <div class="c-fr"><span class="c-fl">Caravan Park:</span><span class="c-fv">${d.site}</span></div>
+      <div class="c-fr"><span class="c-fl">Plot No:</span><span class="c-fv">${d.plotNo}</span></div>
+      <div class="c-fr"><span class="c-fl">Vehicle Registration:</span><span class="c-fv">${d.vehicleReg}</span></div>
+      <div class="c-fr"><span class="c-fl">Manufacturer:</span><span class="c-fv">${d.mfr}</span></div>
+    </div>
+  </div>
+  <div class="c-box">
+    <div class="c-sh">CARAVAN PARK DETAILS</div>
+    <div class="c-bp">
+      <div class="c-fr"><span class="c-fl">Park Name:</span><span class="c-fv"><strong>${d.ownerName}</strong></span></div>
+      <div class="c-fr"><span class="c-fl">Address:</span><span class="c-fv">${d.ownerAddr}</span></div>
+      <div class="c-fr"><span class="c-fl">Postcode:</span><span class="c-fv" style="max-width:48px">${d.ownerPC}</span><span class="c-fl" style="margin-left:5px">Tel:</span><span class="c-fv">${d.ownerTel}</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- CO ALARMS -->
+<div class="c-co-row">
+  <div class="c-co-cell">
+    <div style="font-size:5pt;color:#333;margin-bottom:1px">Approved Audible CO Alarms Fitted &amp; Located Correctly:</div>
+    <div>${chk(d.coFit,'Yes')}${chk(d.coFit,'No')}${chk(d.coFit,'N/A')}</div>
+  </div>
+  <div class="c-co-cell">
+    <div style="font-size:5pt;color:#333;margin-bottom:1px">Are CO Alarms in Date:</div>
+    <div>${chk(d.coDate,'Yes')}${chk(d.coDate,'No')}${chk(d.coDate,'N/A')}</div>
+  </div>
+  <div class="c-co-cell">
+    <div style="font-size:5pt;color:#333;margin-bottom:1px">Testing of CO Alarms Satisfactory:</div>
+    <div>${chk(d.coTest,'Yes')}${chk(d.coTest,'No')}${chk(d.coTest,'N/A')}</div>
+  </div>
+  <div class="c-co-cell">
+    <div style="font-size:5pt;color:#333;margin-bottom:1px">Smoke/Heat Alarms Fitted &amp; Located Correctly:</div>
+    <div>${chk(d.smoke,'Yes')}${chk(d.smoke,'No')}${chk(d.smoke,'N/A')}</div>
+  </div>
+</div>
+
+<!-- APPLIANCES -->
+<div class="c-app-wrap">
+  <div class="c-app-hdr-row"><div class="c-sh">APPLIANCE DETAILS</div><div class="c-sh">INSPECTION DETAILS</div></div>
+  <table class="c-app-table">
+    <thead>
+      <tr>
+        <th rowspan="2" style="width:40px;text-align:left;padding-left:3px">Appliance Type</th>
+        <th rowspan="2" style="width:46px">Make</th>
+        <th rowspan="2" style="width:52px">Model</th>
+        <th rowspan="2" style="width:28px">Inspected Y/N</th>
+        <th rowspan="2" style="width:28px">Serviced Y/N</th>
+        <th rowspan="2" style="width:28px">Landlord's Appliance Y/N</th>
+        <th rowspan="2" style="width:26px">Op. Press. mbar</th>
+        <th rowspan="2" class="c-th-grp" style="width:36px">Operation of Safety Devices Pass/Fail</th>
+        <th rowspan="2" style="width:26px">Ventilation Pass/Fail</th>
+        <th rowspan="2" style="width:18px">Flue Type</th>
+        <th rowspan="2" style="width:28px">Initial Analyser Reading</th>
+        <th rowspan="2" style="width:28px">Final Analyser Reading</th>
+        <th rowspan="2" style="width:30px">Flue Performance Pass/Fail/NA</th>
+        <th rowspan="2" style="width:30px">Flue Condition Pass/Fail/NA</th>
+        <th rowspan="2" style="width:26px">Appliance Safe to Use Y/N</th>
+      </tr>
+
+    </thead>
+    <tbody>${appRows}</tbody>
+  </table>
+</div>
+
+<!-- INSTALLATION -->
+<div class="c-inst-wrap">
+  <div class="c-sh">INSTALLATION INSPECTION DETAILS</div>
+  <div class="c-inst-inner">
+    <div class="c-inst-col">
+      <div class="c-inst-row"><span class="c-inst-label">Gas Installation Tightness Test using Air:</span><span class="c-inst-val">${pfStrike(d.tAir)}</span></div>
+      <div class="c-inst-row"><span class="c-inst-label">Gas Installation Tightness Test using LPG Vapour:</span><span class="c-inst-val">${pfStrike(d.tLPG)}</span></div>
+      <div class="c-inst-row"><span class="c-inst-label">Regulator Lock Up Pressure:</span><span class="c-inst-val"><strong>${mbar(d.lockP)}</strong></span><span class="c-inst-val" style="margin-left:4px">${pfStrike(d.lockR)}</span></div>
+    </div>
+    <div class="c-inst-col">
+      <div class="c-inst-row"><span class="c-inst-label">Hose(s) Check:</span><span class="c-inst-val">${pfStrike(d.hose)}</span></div>
+      <div class="c-inst-row"><span class="c-inst-label">Emergency Control Valve Working and Accessible?</span><span class="c-inst-val">${ynStrike(d.ecv)}</span></div>
+      <div class="c-inst-row"><span class="c-inst-label">Regulator Operating Pressure:</span><span class="c-inst-val"><strong>${mbar(d.opP)}</strong></span><span class="c-inst-val" style="margin-left:4px">${pfStrike(d.opR)}</span></div>
+    </div>
+    <div class="c-inst-col">
+      <div class="c-inst-row"><span class="c-inst-label">Cylinder Connection Satisfactory:</span><span class="c-inst-val">${ynStrike(d.cylConn)}</span></div>
+      <div class="c-inst-row"><span class="c-inst-label">Number of appliances tested:</span><span class="c-inst-val"><strong>${d.numApp}</strong></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- FAULTS — grows to fill remaining space -->
+<div class="c-fault-wrap">
+  <table class="c-fault-table" style="height:100%">
+    <thead>
+      <tr>
+        <th style="width:14px">#</th>
+        <th style="text-align:left;width:36%;padding-left:4px">GIVE DETAILS OF ALL FAULTS</th>
+        <th style="text-align:left;width:28%;padding-left:4px">RECTIFICATION WORK DONE</th>
+        <th style="width:13%">BY WHOM</th>
+        <th style="width:8%">OWNER INFORMED Yes/No</th>
+        <th style="width:8%">WARNING NOTICE ISSUED Yes/No</th>
+        <th style="width:8%">WARNING TAG/STICKER FIXED Yes/No</th>
+      </tr>
+    </thead>
+    <tbody>${faultRows}${emptyFaultRows}</tbody>
+  </table>
+</div>
+
+<!-- BOTTOM ROW -->
+<div class="c-row-bot">
+  <div class="c-box">
+    <div class="c-sh">OTHER COMMENTS OR OBSERVATIONS</div>
+    <div class="c-bp" style="min-height:30px;font-size:6.5pt">${d.comments}</div>
+  </div>
+  <div class="c-next-box">
+    <div class="c-nt">NEXT GAS<br>SAFETY<br>CHECK DUE<br>BEFORE:</div>
+    <div class="c-nd">${d.nextCheck||'__/__/__'}</div>
+  </div>
+  <div class="c-box">
+    <div class="c-sh">ISSUED BY (GAS ENGINEER)</div>
+    <div class="c-bp">
+      <div class="c-fr"><span class="c-fl">Print Name:</span><span class="c-fv">${d.engName}</span></div>
+      <div class="c-fr"><span class="c-fl">Licence No:</span><span class="c-fv">${d.licNo}</span></div>
+      <div class="c-fr"><span class="c-fl">Issue Date:</span><span class="c-fv">${d.issueDate}</span></div>
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+</body>
+</html>`;
+}
+
+
+// ── PRINT ────────────────────────────────────────────────
+// ── PDF generation using jsPDF programmatic layout ────────
+async function loadScript(src){
+  return new Promise((res,rej)=>{
+    if(document.querySelector(`script[src="${src}"]`)) return res();
+    const s=document.createElement('script');
+    s.src=src; s.onload=res; s.onerror=()=>rej(new Error('Failed to load: '+src));
+    document.head.appendChild(s);
+  });
+}
+
+async function generatePDF(d, certNo){
+  // Ensure libraries are loaded
+  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+
+  const certHTML = buildCertHTML(d);
+
+  // Create a hidden container on the same page — same origin, no cross-origin issues
+  const wrap = document.createElement('div');
+  wrap.style.cssText = [
+    'position:fixed','left:0','top:0',
+    'width:1122px','height:794px',
+    'overflow:hidden','background:#fff',
+    'pointer-events:none','z-index:9999',
+    'visibility:visible','opacity:1',   // must be visible for html2canvas to capture backgrounds
+    'transform:translateX(-9999px)'     // off-screen but still rendered
+  ].join(';');
+
+  // Inject just the body content of the cert HTML
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(certHTML, 'text/html');
+
+  // Copy all styles from cert into a style tag
+  const styleEl = document.createElement('style');
+  styleEl.textContent = Array.from(doc.querySelectorAll('style')).map(s=>s.textContent).join('\n');
+  wrap.appendChild(styleEl);
+
+  // Copy body content
+  const bodyDiv = document.createElement('div');
+  bodyDiv.innerHTML = doc.body.innerHTML;
+  bodyDiv.style.cssText = 'width:1122px;height:794px;overflow:hidden;background:#fff;font-family:Arial,sans-serif;font-size:7pt;display:block;';
+  wrap.appendChild(bodyDiv);
+
+  document.body.appendChild(wrap);
+
+  // Wait for styles and layout to settle
+  await new Promise(r=>setTimeout(r, 500));
+
+  try{
+    const canvas = await html2canvas(bodyDiv, {
+      scale: 3,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff',
+      width: 1122,
+      height: 794,
+      windowWidth: 1122,
+      windowHeight: 794,
+      logging: false,
+      onclone: (clonedDoc) => {
+        const style = clonedDoc.createElement('style');
+        style.textContent = [
+          '* { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }',
+          '.c-sh, .c-sh * { background: #000 !important; color: #fff !important; }',
+          '.c-hdr-title { background: #000 !important; color: #fff !important; }',
+          '.c-hdr-logo { background: #000 !important; color: #fff !important; }',
+          '.c-next-box { background: #000 !important; color: #fff !important; }',
+          '.c-th-grp, .c-th-grp * { background: #333 !important; color: #fff !important; }',
+          '.c-app-table th { background: #000 !important; color: #fff !important; }',
+          '.c-fault-table th { background: #000 !important; color: #fff !important; }',
+        ].join('\n');
+        clonedDoc.head.appendChild(style);
+      }
+    });
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation:'landscape', unit:'mm', format:'a4' });
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+    pdf.addImage(imgData, 'JPEG', 0, 0, 297, 210);
+    document.body.removeChild(wrap);
+    return pdf.output('blob');
+  } catch(e){
+    document.body.removeChild(wrap);
+    throw e;
+  }
+}
+
+
+
+
+function printCert(){
+  const d = collect();
+
+  // ── Validation ──
+  const missing = [];
+  if(!d.site)   missing.push({label:'Caravan Park',       id:'site',  tab:'form'});
+  if(!d.plotNo) missing.push({label:'Plot Number',        id:'plotNo',tab:'form'});
+  if(!d.opP)    missing.push({label:'Operating Pressure', id:'opP',   tab:'tests'});
+  if(!d.lockP)  missing.push({label:'Lock-Up Pressure',   id:'lockP', tab:'tests'});
+  if(missing.length){
+    toast('Required: '+missing.map(m=>m.label).join(', '),'error');
+    switchTab(missing[0].tab);
+    missing.forEach(m=>{
+      const el=document.getElementById(m.id);
+      if(el){
+        el.style.borderColor='#ef4444';
+        el.style.boxShadow='0 0 0 2px rgba(239,68,68,0.3)';
+        setTimeout(()=>{el.style.borderColor='';el.style.boxShadow='';},2500);
+      }
+    });
+    return;
+  }
+
+  // ── Show processing overlay ──
+  showOverlay('Getting certificate number…');
+  doPrintFlow(d).finally(()=>hideOverlay());
+}
+
+async function doPrintFlow(d){
+  try{
+    // Step 1: cert number
+    updateOverlay('Getting certificate number…');
+    const certNo = await getNextCertNumber();
+    d.certNo = formatCertNo(certNo);
+    sv('serialNo', d.certNo);
+    console.log('Cert number assigned:', d.certNo);
+
+    // Step 2: generate PDF blob
+    updateOverlay('Generating PDF…');
+    const pdfBlob = await generatePDF(d, d.certNo);
+    console.log('PDF generated:', pdfBlob.size, 'bytes');
+
+    // Step 3: upload to Drive
+    if(gToken){
+      updateOverlay('Saving to Google Drive…');
+      await uploadCertToDrive(d, pdfBlob);
+      console.log('Drive upload complete');
+    } else {
+      console.warn('No Drive token — skipping upload');
+      alert('Not connected to Google Drive — certificate will print but NOT be saved.');
+    }
+
+    // Step 4: print
+    updateOverlay('Opening print dialog…');
+    const w = window.open('', '_blank');
+    if(w){
+      w.document.write(buildCertHTML(d));
+      w.document.close();
+      setTimeout(()=>w.print(), 700);
+    }
+
+  } catch(e){
+    console.error('doPrintFlow error:', e);
+    alert('Error during print process: ' + (e.message||String(e)));
+  }
+}
+
+async function uploadCertToDrive(d, pdfBlob){
+  const year = new Date().getFullYear().toString();
+  const certNo = d.certNo;
+  const filename = `${d.plotNo} - ${certNo}.pdf`;
+
+  console.log('Step 1: Finding root folder');
+  const rootId = await findOrCreateFolder(DRIVE_ROOT, null);
+  console.log('Root:', rootId);
+
+  console.log('Step 2: Finding year folder:', year);
+  const yearId = await findOrCreateFolder(year, rootId);
+  console.log('Year:', yearId);
+
+  console.log('Step 3: Finding park folder:', d.site);
+  const parkId = await findOrCreateFolder(d.site||'Unknown Park', yearId);
+  console.log('Park:', parkId);
+
+  console.log('Step 4: Uploading', filename);
+  const fm = new FormData();
+  fm.append('metadata', new Blob([JSON.stringify({
+    name: filename,
+    parents: [parkId],
+    mimeType: 'application/pdf'
+  })], {type:'application/json'}));
+  fm.append('file', pdfBlob);
+
+  const res = await fetch(
+    'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
+    { method:'POST', headers:{ Authorization:`Bearer ${gToken}` }, body:fm }
+  );
+
+  if(!res.ok){
+    const txt = await res.text();
+    throw new Error(`Drive upload ${res.status}: ${txt}`);
+  }
+  const saved = await res.json();
+  console.log('Saved to Drive:', saved.id, filename);
+  setSyncStatus('synced', `Saved ${filename}`);
+  toast(`Saved to Drive: ${filename} ✓`, 'success');
+}
+
+// ── CARAVAN PARKS ────────────────────────────────────────
+const PARKS_KEY      = 'gsr_parks_v2';
+const DRIVE_ROOT     = 'Caravan Gas Safety Checks';
+const DRIVE_PARKLIST = '.ParkList';
+const DRIVE_PARKS_FILE = 'parks.json';
+
+const DEFAULT_PARKS = [
+  { name:'Golden Gate Caravan Park', addr:'Towyn', pc:'LL22 9HU', tel:'01745 833048', service:false }
+];
+
+function getParks(){
+  try{
+    const saved = JSON.parse(localStorage.getItem(PARKS_KEY)||'null');
+    if(!saved){ localStorage.setItem(PARKS_KEY, JSON.stringify(DEFAULT_PARKS)); return DEFAULT_PARKS; }
+    return saved;
+  }catch{ return DEFAULT_PARKS; }
+}
+function saveParks(parks){ localStorage.setItem(PARKS_KEY, JSON.stringify(parks)); }
+
+// ── Certificate counter — based on total PDFs in Drive ───
+const COUNTER_KEY = 'gsr_cert_counter';
+
+function getLocalCounter(){ return parseInt(localStorage.getItem(COUNTER_KEY)||'0'); }
+function setLocalCounter(n){ localStorage.setItem(COUNTER_KEY, String(n)); }
+function formatCertNo(n){ return String(n).padStart(6,'0'); }
+
+async function countAllCertsInDrive(){
+  if(!gToken) return null;
+  try{
+    // Step 1: find the root folder
+    const rootQ = `name='${DRIVE_ROOT}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+    const rootR = await driveReq('https://www.googleapis.com/drive/v3/files?q='+encodeURIComponent(rootQ)+'&fields=files(id)');
+    if(!rootR.files || !rootR.files.length) return 0;
+    const rootId = rootR.files[0].id;
+
+    // Step 2: get all year subfolders inside root
+    const yearQ = `'${rootId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+    const yearR = await driveReq('https://www.googleapis.com/drive/v3/files?q='+encodeURIComponent(yearQ)+'&fields=files(id)');
+    if(!yearR.files || !yearR.files.length) return 0;
+
+    // Step 3: get all park subfolders inside each year folder
+    const parkIds = [];
+    for(const yr of yearR.files){
+      const parkQ = `'${yr.id}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+      const parkR = await driveReq('https://www.googleapis.com/drive/v3/files?q='+encodeURIComponent(parkQ)+'&fields=files(id)');
+      if(parkR.files) parkIds.push(...parkR.files.map(p=>p.id));
+    }
+    if(!parkIds.length) return 0;
+
+    // Step 4: count PDFs inside each park folder — these are the actual certificates
+    let total = 0;
+    for(const pid of parkIds){
+      const pdfQ = `'${pid}' in parents and mimeType='application/pdf' and trashed=false`;
+      const pdfR = await driveReq('https://www.googleapis.com/drive/v3/files?q='+encodeURIComponent(pdfQ)+'&fields=files(id)&pageSize=1000');
+      if(pdfR.files) total += pdfR.files.length;
+    }
+    return total;
+  } catch(e){
+    console.warn('Count certs failed:', e);
+    return null;
+  }
+}
+
+async function getNextCertNumber(){
+  if(gToken){
+    // Drive connected — always count from Drive, never use local
+    const count = await countAllCertsInDrive();
+    const next = (count||0) + 1;
+    console.log('Drive cert count:', count, '→ next cert:', next);
+    return next;
+  }
+  // Offline — use local counter (will resync with Drive next time online)
+  const next = getLocalCounter() + 1;
+  setLocalCounter(next);
+  console.log('Offline cert number:', next);
+  return next;
+}
+
+// ── Drive helpers ─────────────────────────────────────────
+async function driveReq(url, opts={}){
+  const res = await fetch(url,{ ...opts, headers:{ Authorization:`Bearer ${gToken}`, ...(opts.headers||{}) }});
+  if(!res.ok) throw new Error('Drive '+res.status);
+  return res.json();
+}
+async function findOrCreateFolder(name, parentId){
+  const q = parentId
+    ? `name='${name}' and mimeType='application/vnd.google-apps.folder' and '${parentId}' in parents and trashed=false`
+    : `name='${name}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+  const r = await driveReq('https://www.googleapis.com/drive/v3/files?q='+encodeURIComponent(q)+'&fields=files(id)');
+  if(r.files && r.files.length) return r.files[0].id;
+  const meta = { name, mimeType:'application/vnd.google-apps.folder' };
+  if(parentId) meta.parents = [parentId];
+  const cr = await driveReq('https://www.googleapis.com/drive/v3/files',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(meta) });
+  return cr.id;
+}
+async function findFile(name, parentId){
+  const q = `name='${name}' and '${parentId}' in parents and trashed=false`;
+  const r = await driveReq('https://www.googleapis.com/drive/v3/files?q='+encodeURIComponent(q)+'&fields=files(id)');
+  return (r.files && r.files.length) ? r.files[0] : null;
+}
+async function readFile(fileId){
+  const r = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,{ headers:{ Authorization:`Bearer ${gToken}` }});
+  if(!r.ok) throw new Error('Read failed');
+  return r.text();
+}
+async function writeFile(name, parentId, content, existingId){
+  const fm = new FormData();
+  fm.append('metadata', new Blob([JSON.stringify(existingId?{}:{name,parents:[parentId]})],{type:'application/json'}));
+  fm.append('file', new Blob([content],{type:'application/json'}));
+  const url = existingId
+    ? `https://www.googleapis.com/upload/drive/v3/files/${existingId}?uploadType=multipart`
+    : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+  const r = await fetch(url,{ method:existingId?'PATCH':'POST', headers:{ Authorization:`Bearer ${gToken}` }, body:fm });
+  if(!r.ok) throw new Error('Write failed');
+  return r.json();
+}
+
+// ── Merge: combine two park lists, deduplicate by name ────
+function mergeParks(local, remote){
+  const merged = [...local];
+  remote.forEach(rp=>{ if(!merged.find(lp=>lp.name.toLowerCase()===rp.name.toLowerCase())) merged.push(rp); });
+  return merged.sort((a,b)=>a.name.localeCompare(b.name));
+}
+
+// ── Sync parks with Drive ─────────────────────────────────
+let _plFolderId = null, _parksFileId = null;
+
+async function syncParksWithDrive(){
+  if(!gToken) return;
+  setSyncStatus('syncing','Syncing parks…');
+  try{
+    const rootId = await findOrCreateFolder(DRIVE_ROOT, null);
+    const plId   = await findOrCreateFolder(DRIVE_PARKLIST, rootId);
+    _plFolderId  = plId;
+    const existing = await findFile(DRIVE_PARKS_FILE, plId);
+    const local    = getParks();
+    if(existing){
+      _parksFileId = existing.id;
+      const remote = JSON.parse(await readFile(existing.id));
+      const merged = mergeParks(local, remote);
+      saveParks(merged);
+      await writeFile(DRIVE_PARKS_FILE, plId, JSON.stringify(merged,null,2), existing.id);
+      setSyncStatus('synced', merged.length+' parks synced');
+    } else {
+      const cr = await writeFile(DRIVE_PARKS_FILE, plId, JSON.stringify(local,null,2), null);
+      _parksFileId = cr.id;
+      setSyncStatus('synced', local.length+' parks uploaded');
+    }
+    renderParkList();
+  } catch(e){
+    console.warn('Park sync failed:',e);
+    setSyncStatus('error','Sync failed — using local list');
+  }
+}
+
+async function pushParksToDrive(){
+  if(!gToken || !_plFolderId) return;
+  try{
+    const parks = getParks();
+    if(_parksFileId){
+      await writeFile(DRIVE_PARKS_FILE, _plFolderId, JSON.stringify(parks,null,2), _parksFileId);
+    } else {
+      const cr = await writeFile(DRIVE_PARKS_FILE, _plFolderId, JSON.stringify(parks,null,2), null);
+      _parksFileId = cr.id;
+    }
+  } catch(e){ toast('Could not save parks to Drive'); }
+}
+
+function setSyncStatus(state, msg){
+  const el = document.getElementById('parkSyncStatus');
+  if(!el) return;
+  const col = {syncing:'#fbbf24',synced:'#4ade80',error:'#f87171'};
+  const ico = {syncing:'↻ ',synced:'✓ ',error:'⚠ '};
+  el.style.color = col[state]||'#94a3b8';
+  el.textContent = (ico[state]||'')+msg;
+}
+
+function renderParkList(){
+  const parks = getParks();
+  // Populate the settings list
+  const list = document.getElementById('parkList');
+  if(list){
+    list.innerHTML = parks.length === 0
+      ? '<p style="font-size:10px;color:var(--mut)">No parks saved yet.</p>'
+      : parks.map((p,i)=>`
+        <div style="background:var(--bg);border:1px solid var(--bd);border-radius:4px;padding:7px 9px;display:flex;align-items:center;gap:8px">
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:700;color:var(--text)">${p.name}</div>
+            <div style="font-size:10px;color:var(--mut)">${p.addr} · ${p.pc} · ${p.tel}</div>
+            <div style="font-size:9px;margin-top:2px;color:${p.service===false?'#f87171':'#4ade80'}">${p.service===false?'✕ No servicing':'✓ Serviced'}</div>
+          </div>
+          <button onclick="removePark(${i})" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:16px;padding:2px 4px;line-height:1" title="Remove">×</button>
+        </div>`).join('');
+  }
+  // Populate the form dropdown
+  const sel = document.getElementById('parkSelect');
+  if(sel){
+    const current = sel.value;
+    sel.innerHTML = '<option value="">— Select a park —</option>'
+      + parks.map((p,i)=>`<option value="${i}"${current==i?' selected':''}>${p.name}</option>`).join('');
+    // Always default to the blank option unless a park was previously selected
+    if(!current) sel.selectedIndex = 0;
+  }
+}
+
+function addPark(){
+  const name = gv('np_name'), addr = gv('np_addr'), pc = gv('np_pc'), tel = gv('np_tel');
+  if(!name){ toast('Enter a park name first'); return; }
+  const serviceEl = document.getElementById('np_service');
+  const service = serviceEl ? serviceEl.checked : true;
+  const parks = getParks();
+  parks.push({name,addr,pc,tel,service});
+  saveParks(parks);
+  ['np_name','np_addr','np_pc','np_tel'].forEach(id=>sv(id,''));
+  if(serviceEl) serviceEl.checked = true; // reset to default ticked
+  renderParkList();
+  pushParksToDrive();
+  toast(`${name} added ✓`);
+}
+
+function removePark(i){
+  const parks = getParks();
+  const name = parks[i].name;
+  parks.splice(i,1);
+  saveParks(parks);
+  renderParkList();
+  pushParksToDrive();
+  toast(`${name} removed`);
+}
+
+function onParkSelect(){
+  const sel = document.getElementById('parkSelect');
+  const idx = sel.value;
+  // Blank selection — clear all park-related fields
+  if(idx === ''){
+    sv('ownerName', '');
+    sv('ownerAddr', '');
+    sv('ownerPC',   '');
+    sv('ownerTel',  '');
+    sv('site',      '');
+    window._parkService = true; // reset to default (service)
+    updateProgress();
+    return;
+  }
+  const park = getParks()[parseInt(idx)];
+  if(!park) return;
+  sv('ownerName', park.name);
+  sv('ownerAddr', park.addr);
+  sv('ownerPC',   park.pc);
+  sv('ownerTel',  park.tel);
+  sv('site',      park.name);
+  // Store the park's service preference so calcAppPressures can use it
+  window._parkService = park.service !== false; // true = service, false = no service
+  updateProgress();
+}
+
+// ── PRESSURE PASS/FAIL AUTO-CALC ────────────────────────
+// Lock-up: pass if <= 50mbar
+// Operating: pass if 30–44mbar inclusive
+function calcPressureResults(){
+  const lockVal = parseFloat(gv('lockP'));
+  const opVal   = parseFloat(gv('opP'));
+
+  // Lock-up pressure result
+  const lockEl = document.getElementById('lockP');
+  if(!isNaN(lockVal) && gv('lockP') !== ''){
+    const lockPass = lockVal <= 50;
+    const lockOpt = document.querySelector(`.ro[data-n="lockR"][data-v="${lockPass?'Pass':'Fail'}"]`);
+    if(lockOpt) lockOpt.click();
+    if(lockEl){
+      lockEl.style.borderColor = lockPass ? '#16a34a' : '#dc2626';
+      lockEl.style.color       = lockPass ? '#4ade80' : '#f87171';
+    }
+  } else {
+    // Clear if empty
+    if(lockEl){ lockEl.style.borderColor=''; lockEl.style.color=''; }
+  }
+
+  // Operating pressure result
+  const opEl = document.getElementById('opP');
+  if(!isNaN(opVal) && gv('opP') !== ''){
+    const opPass = opVal >= 30 && opVal <= 44;
+    const opOpt = document.querySelector(`.ro[data-n="opR"][data-v="${opPass?'Pass':'Fail'}"]`);
+    if(opOpt) opOpt.click();
+    if(opEl){
+      opEl.style.borderColor = opPass ? '#16a34a' : '#dc2626';
+      opEl.style.color       = opPass ? '#4ade80' : '#f87171';
+    }
+  } else {
+    if(opEl){ opEl.style.borderColor=''; opEl.style.color=''; }
+  }
+}
+
+// ── APPLIANCE PRESSURE AUTO-CALC ─────────────────────────
+// Deductions from regulator operating pressure per appliance type
+const PRESS_DEDUCTIONS = {
+  'Boiler/Water Heater': 0.5,
+  'Fire':                1.5,
+  'Cooker':              1.0,
+  'Hob':                 1.0,
+  'Other':               null   // null = no auto-calc, leave blank
+};
+
+function calcAppPressures(){
+  const raw = gv('opP');
+  const base = parseFloat(raw);
+  APPS.forEach((name, i)=>{
+    const el = document.getElementById('a'+i+'pr');
+    if(!el) return;
+    const ded = PRESS_DEDUCTIONS[name];
+    const hasMake  = gv('a'+i+'mk') !== '';
+    const hasData  = hasMake; // only trigger auto-values when Make is filled
+
+    // Auto-set inspected & serviced when row has data
+    const inSel = document.getElementById('a'+i+'in');
+    const svSel = document.getElementById('a'+i+'sv');
+    // Read service preference live from whichever park is currently selected
+    const _sel = document.getElementById('parkSelect');
+    const _idx = _sel ? _sel.value : '';
+    const _park = _idx !== '' ? getParks()[parseInt(_idx)] : null;
+    const serviceDefault = (_park && _park.service === false) ? 'N' : 'Y';
+    if(inSel && hasData && inSel.value === '') inSel.value = 'Y';
+    if(svSel && hasData) svSel.value = serviceDefault; // always update to match current park
+
+    // Cooker (index 2) and Hob (index 3) are always Flueless
+    const isFlueless = (i === 2 || i === 3);
+    const flSel = document.getElementById('a'+i+'fl');
+    if(flSel && isFlueless) flSel.value = 'Flueless';
+
+    // Auto-set safety devices and ventilation to Pass when row has data
+    ['a'+i+'sd','a'+i+'ve'].forEach(rname=>{
+      const already = document.querySelector(`.ro[data-n="${rname}"] input:checked`);
+      if(hasData && !already){
+        const opt = document.querySelector(`.ro[data-n="${rname}"][data-v="Pass"]`);
+        if(opt) opt.click();
+      }
+    });
+
+    // Flueless appliances: flue performance and condition default to N/A
+    ['a'+i+'fp','a'+i+'fc'].forEach(rname=>{
+      const already = document.querySelector(`.ro[data-n="${rname}"] input:checked`);
+      if(!already){
+        const val = isFlueless ? 'N/A' : null;
+        if(val){ const opt = document.querySelector(`.ro[data-n="${rname}"][data-v="${val}"]`); if(opt) opt.click(); }
+      }
+    });
+
+    // Safe to use defaults to Yes for all appliances when row has data
+    const suAlready = document.querySelector(`.ro[data-n="a${i}su"] input:checked`);
+    if(hasData && !suAlready){
+      const suOpt = document.querySelector(`.ro[data-n="a${i}su"][data-v="Yes"]`);
+      if(suOpt) suOpt.click();
+    }
+
+    // Non-boiler appliances: analyser readings default to N/A
+    if(i !== 0){
+      const irEl = document.getElementById('a'+i+'ir');
+      const frEl = document.getElementById('a'+i+'fr');
+      if(irEl) irEl.value = 'N/A';
+      if(frEl) frEl.value = 'N/A';
+    }
+
+    if(isNaN(base) || raw === ''){
+      el.value = '';
+      el.placeholder = 'auto';
+    } else if(ded !== null && hasData){
+      const result = Math.round((base - ded) * 10) / 10;
+      el.value = result;
+    } else if(ded !== null && !hasData){
+      el.value = '';
+    }
+  });
+  updateProgress();
+}
+
+// ── OVERLAY ──────────────────────────────────────────────
+function showOverlay(msg){
+  const o=document.getElementById('overlay');
+  const m=document.getElementById('overlay-msg');
+  if(o) o.classList.add('show');
+  if(m) m.textContent=msg||'Processing…';
+}
+function updateOverlay(msg){
+  const m=document.getElementById('overlay-msg');
+  if(m) m.textContent=msg;
+}
+function hideOverlay(){
+  const o=document.getElementById('overlay');
+  if(o) o.classList.remove('show');
+}
+// ── HELPERS ──────────────────────────────────────────────
+function gv(id){const e=document.getElementById(id);return e?e.value.trim():''}
+function sv(id,v){const e=document.getElementById(id);if(e)e.value=v}
+function toast(msg, type=''){
+  const t=document.getElementById('toast');if(!t)return;
+  t.textContent=msg;
+  t.style.borderColor = type==='success'?'#16a34a':type==='error'?'#dc2626':'';
+  t.style.color       = type==='success'?'#4ade80':type==='error'?'#f87171':'';
+  t.classList.add('on');
+  setTimeout(()=>{t.classList.remove('on');t.style.borderColor='';t.style.color='';},3500);
+}
+
+// ── INIT ─────────────────────────────────────────────────
+buildApps();buildFaults();loadS();autoDate();defaultAlarms();updateProgress();checkDrive();renderParkList();
+if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
+</script>
+</body>
+</html>

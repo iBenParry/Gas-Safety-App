@@ -377,6 +377,14 @@ document.addEventListener('input', e => {
   updateProgress();
   if(e.target.id === 'opP' || /^a\d+mk$/.test(e.target.id)) calcAppPressures();
   if(e.target.id === 'lockP' || e.target.id === 'opP') calcPressureResults();
+  // Boiler analyser values entered — auto-set flue type to Room Sealed
+  if(e.target.id === 'a0ir' || e.target.id === 'a0fr'){
+    const val = e.target.value.trim();
+    if(val && val !== 'N/A'){
+      const flSel = document.getElementById('a0fl');
+      if(flSel && flSel.value === '') flSel.value = 'Room Sealed';
+    }
+  }
 });
 function updateProgress(){
   const req=['inspDate','ownerName','mfr','engName','licNo'];
@@ -1023,6 +1031,19 @@ function printCert(){
   if(appCount === 0){
     switchTab('apps');
     alert('No appliances have been entered.\n\nA gas safety certificate cannot be issued without testing at least one appliance. Please fill in the Make (and Model) for each appliance tested.');
+    return;
+  }
+
+  // ── Flue type check — all entered appliances must have a flue type selected ──
+  const missingFlue = APPS.filter((_,i) => {
+    const hasMake = gv('a'+i+'mk') !== '';
+    const flSel = document.getElementById('a'+i+'fl');
+    const flVal = flSel ? flSel.value : '';
+    return hasMake && !flVal;
+  }).map(name => name);
+  if(missingFlue.length){
+    switchTab('apps');
+    alert('Flue type not selected for: ' + missingFlue.join(', ') + '.\n\nPlease select a flue type for each appliance before printing.');
     return;
   }
 

@@ -611,18 +611,26 @@ return `<!DOCTYPE html>
 <meta charset="UTF-8">
 <title>Gas Safety Record — ${d.ownerName||'Unknown'} — ${d.inspDate}</title>
 <style>
-  @page { size: A4 landscape; margin: 5mm; }
+  @page { size: A4 landscape; margin: 0; }
 
   * { box-sizing: border-box; margin: 0; padding: 0;
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important; }
 
-  html, body { width: 287mm; height: 200mm; background: #fff;
-    color: #000; font-family: Arial, sans-serif; font-size: 7pt;
-    overflow: hidden; }
+  html, body {
+    width: 297mm; height: 210mm;
+    background: #fff; color: #000;
+    font-family: Arial, sans-serif; font-size: 7pt;
+    overflow: hidden;
+    margin: 0 !important; padding: 0 !important;
+  }
 
-  .c-wrap { width: 287mm; height: 200mm; display: flex;
-    flex-direction: column; gap: 2px; padding: 0; background: #fff; }
+  .c-wrap {
+    width: 297mm; height: 210mm;
+    display: flex; flex-direction: column;
+    gap: 2px; padding: 5mm;
+    background: #fff;
+  }
 
   /* Section headings */
   .c-sh { background: #000 !important; color: #fff !important;
